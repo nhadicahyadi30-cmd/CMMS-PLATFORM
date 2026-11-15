@@ -18,7 +18,6 @@ jobs:
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/seed/dev_seed.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/rls_and_workflow.sql
   api:
-    if: hashFiles('apps/api/package.json') != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +25,6 @@ jobs:
         with: { node-version: 22 }
       - run: cd apps/api && npm ci && npm run build && npm test --if-present
   web:
-    if: hashFiles('apps/web/package.json') != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

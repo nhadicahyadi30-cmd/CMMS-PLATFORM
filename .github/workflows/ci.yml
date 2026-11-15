@@ -18,6 +18,7 @@ jobs:
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/seed/dev_seed.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/rls_and_workflow.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/kpi.sql
+      - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/rca.sql
   api:
     runs-on: ubuntu-latest
     steps:

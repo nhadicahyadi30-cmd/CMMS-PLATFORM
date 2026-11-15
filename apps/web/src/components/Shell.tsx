@@ -8,11 +8,12 @@ const NAV = [
   { m: 1, href: '/assets', label: 'Aset & Equipment' },
   { m: 2, href: '/pm', label: 'Preventive' },
   { m: 3, href: '/work-orders', label: 'Work Order' },
+  { m: 8, href: '/rca', label: 'RCA & Failure' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory' },
   { m: 9, href: '/kpi', label: 'Dashboard KPI' },
   { m: 10, href: '/admin', label: 'Administrasi' },
 ];
-const LATER = ['AI Assistant', 'Electrical & Utility', 'RCA & Failure'];
+const LATER = ['AI Assistant', 'Electrical & Utility'];
 
 export default function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(); const router = useRouter();

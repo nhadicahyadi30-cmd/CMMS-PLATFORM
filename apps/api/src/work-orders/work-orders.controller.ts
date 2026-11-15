@@ -22,7 +22,7 @@ const ListQ = z.object({
 const COLS = `w.id, w.code, w.plant_id as "plantId", w.asset_id as "assetId", a.name as "assetName", w.wo_type as "woType", w.title, w.description,
   w.priority, w.status, w.technician_id as "technicianId", t.full_name as "technicianName", w.est_hours as "estHours", w.actual_hours as "actualHours",
   w.downtime_hours as "downtimeHours", w.result_notes as "resultNotes", w.created_at as "createdAt", w.sla_respond_due as "slaRespondDue",
-  w.sla_resolve_due as "slaResolveDue", w.approved_at as "approvedAt", w.reject_reason as "rejectReason", w.done_at as "doneAt", w.closed_at as "closedAt"`;
+  w.sla_resolve_due as "slaResolveDue", w.approved_at as "approvedAt", w.reject_reason as "rejectReason", w.done_at as "doneAt", w.closed_at as "closedAt", w.failure_mode_id as "failureModeId"`;
 const FROM = `from work_orders w join assets a on a.id = w.asset_id left join technicians t on t.id = w.technician_id`;
 
 @Controller('work-orders')
@@ -109,8 +109,9 @@ export class WorkOrdersController {
   }
   @Post(':id/finish') @Roles('technician', 'supervisor', 'admin')
   finish(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
-    const d = parse(z.object({ actualHours: z.number().min(0).max(999), downtimeHours: z.number().min(0).max(999).default(0), notes: z.string().max(4000).default('') }), b);
-    return this.step(id, req.user, `status='done', actual_hours=$1, downtime_hours=$2, result_notes=$3`, [d.actualHours, d.downtimeHours, d.notes], 'Pekerjaan selesai, menunggu penutupan', true);
+    const d = parse(z.object({ actualHours: z.number().min(0).max(999), downtimeHours: z.number().min(0).max(999).default(0), notes: z.string().max(4000).default(''), failureModeId: z.string().uuid().optional() }), b);
+    const fm = d.failureModeId ? `, failure_mode_id=$4` : '';
+    return this.step(id, req.user, `status='done', actual_hours=$1, downtime_hours=$2, result_notes=$3${fm}`, d.failureModeId ? [d.actualHours, d.downtimeHours, d.notes, d.failureModeId] : [d.actualHours, d.downtimeHours, d.notes], 'Pekerjaan selesai, menunggu penutupan', true);
   }
   @Post(':id/return') @Roles('supervisor', 'admin')
   returnWork(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {

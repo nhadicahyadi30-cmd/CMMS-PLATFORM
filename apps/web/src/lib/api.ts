@@ -14,7 +14,7 @@ export const login = (org: string, username: string, password: string) => authCa
 export const bootstrap = () => authCall('refresh');
 export async function logout() { await fetch('/auth/logout', { method: 'POST' }); token = null; me = null; }
 
-export class ApiError extends Error { constructor(public status: number, msg: string) { super(msg); } }
+export class ApiError extends Error { constructor(public status: number, msg: string, public details?: any) { super(msg); } }
 
 export async function api<T = any>(path: string, init: { method?: string; body?: unknown } = {}, retry = true): Promise<T> {
   const r = await fetch(`/api${path}`, {
@@ -25,7 +25,7 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   if (r.status === 401 && retry && (await bootstrap())) return api<T>(path, init, false);
   if (r.status === 204) return undefined as T;
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Terjadi kesalahan');
+  if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Terjadi kesalahan', d);
   return d as T;
 }
 

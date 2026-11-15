@@ -11,6 +11,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Web Next.js: login, aset, WO (aksi sesuai peran), PM | 🟡 kode ditulis, **belum dikompilasi/dijalankan** |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
 | Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |
+| Modul 9 Dashboard KPI: availability, MTTR, MTBF, kepatuhan PM, SLA, backlog, Pareto, biaya, ekspor CSV | 🟡 rumus DB teruji dengan data hitungan manual; API/UI baru dikompilasi CI |
 | Lampiran foto/PDF ke S3 (web + WhatsApp), bucket privat | 🟡 kode ada, belum diuji dengan S3/MinIO sungguhan |
 
 
@@ -37,6 +38,7 @@ createdb mh_test
 for f in db/migrations/*.sql; do psql -d mh_test -v ON_ERROR_STOP=1 -f $f; done
 psql -d mh_test -f db/seed/dev_seed.sql
 psql -d mh_test -f db/tests/rls_and_workflow.sql   # harus berakhir: SEMUA UJI LULUS
+psql -d mh_test -f db/tests/kpi.sql                # harus berakhir: UJI KPI LULUS
 ```
 Seed hanya untuk dev (hash password placeholder).
 

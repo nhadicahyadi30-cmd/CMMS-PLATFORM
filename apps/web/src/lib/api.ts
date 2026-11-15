@@ -45,3 +45,14 @@ export async function fetchBlobUrl(path: string, retry = true): Promise<string> 
   if (!r.ok) throw new ApiError(r.status, 'Berkas tidak bisa dimuat');
   return URL.createObjectURL(await r.blob());
 }
+
+/** Unduh berkas dari endpoint terproteksi (CSV laporan). */
+export async function downloadFile(path: string, retry = true): Promise<void> {
+  const r = await fetch(`/api${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+  if (r.status === 401 && retry && (await bootstrap())) return downloadFile(path, false);
+  if (!r.ok) throw new ApiError(r.status, 'Unduhan gagal');
+  const name = /filename="([^"]+)"/.exec(r.headers.get('content-disposition') ?? '')?.[1] ?? 'laporan.csv';
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

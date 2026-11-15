@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "dev": "ts-node-dev --respawn src/main.ts",
-    "test": "node --test dist/whatsapp/command.spec.js dist/storage/file-type.spec.js dist/admin/admin.spec.js"
+    "test": "node --test dist/whatsapp/command.spec.js dist/storage/file-type.spec.js dist/admin/admin.spec.js dist/kpi/csv.spec.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.670.0",

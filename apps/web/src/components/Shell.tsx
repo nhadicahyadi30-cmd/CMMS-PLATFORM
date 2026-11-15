@@ -9,9 +9,10 @@ const NAV = [
   { m: 2, href: '/pm', label: 'Preventive' },
   { m: 3, href: '/work-orders', label: 'Work Order' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory' },
+  { m: 9, href: '/kpi', label: 'Dashboard KPI' },
   { m: 10, href: '/admin', label: 'Administrasi' },
 ];
-const LATER = ['AI Assistant', 'Electrical & Utility', 'RCA & Failure', 'Dashboard KPI'];
+const LATER = ['AI Assistant', 'Electrical & Utility', 'RCA & Failure'];
 
 export default function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(); const router = useRouter();

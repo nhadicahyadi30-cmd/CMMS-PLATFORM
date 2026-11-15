@@ -99,13 +99,14 @@ function Techs() {
           <div className="sm:col-span-3"><button className="btn">Simpan</button></div>
         </form>)}
       <div className="card overflow-x-auto p-0">
-        <table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Kode</th><th>Nama</th><th>Keahlian</th><th>Shift</th><th>Akun</th><th>WhatsApp</th><th /></tr></thead>
+        <table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Kode</th><th>Nama</th><th>Keahlian</th><th>Shift</th><th>Akun</th><th>WhatsApp</th><th className="text-right">Tarif/jam</th><th /></tr></thead>
           <tbody>{techs.data?.map((t) => (
             <tr key={t.id} className="border-t"><td className="p-2 font-mono">{t.code}</td><td>{t.fullName}{!t.active && ' (nonaktif)'}</td><td>{t.skill}</td><td>{t.shift}</td>
-              <td>{users.data?.find((u) => u.id === t.userId)?.username ?? '—'}</td><td>{t.phone ?? '—'} {t.waOptIn ? '✓ opt-in' : ''}</td>
+              <td>{users.data?.find((u) => u.id === t.userId)?.username ?? '—'}</td><td>{t.phone ?? '—'} {t.waOptIn ? '✓ opt-in' : ''}</td><td className="text-right">Rp {Number(t.hourlyRate).toLocaleString('id-ID')}</td>
               <td className="space-x-2 whitespace-nowrap p-2 text-right">
                 <button className="underline" onClick={() => { const p = prompt('Nomor WhatsApp (kosongkan untuk menghapus)', t.phone ?? ''); if (p !== null) run(() => api(`/admin/technicians/${t.id}`, { method: 'PATCH', body: { phone: p.trim() || null } })); }}>Nomor</button>
                 <button className="underline" disabled={!t.phone} onClick={() => run(() => api(`/admin/technicians/${t.id}`, { method: 'PATCH', body: { waOptIn: !t.waOptIn } }), t.waOptIn ? 'Opt-in dicabut' : 'Opt-in dicatat')}>{t.waOptIn ? 'Cabut opt-in' : 'Catat opt-in'}</button>
+                <button className="underline" onClick={() => { const v = prompt('Tarif per jam (Rp) untuk perhitungan biaya tenaga kerja', String(Number(t.hourlyRate))); const n = Number((v ?? '').replace(/[.,]/g, '')); if (v !== null && Number.isFinite(n) && n >= 0) run(() => api(`/admin/technicians/${t.id}`, { method: 'PATCH', body: { hourlyRate: n } })); }}>Tarif</button>
                 <button className="underline" onClick={() => run(() => api(`/admin/technicians/${t.id}`, { method: 'PATCH', body: { active: !t.active } }))}>{t.active ? 'Nonaktifkan' : 'Aktifkan'}</button>
               </td></tr>))}</tbody></table>
       </div>
@@ -123,8 +124,8 @@ function Plants() {
         <Field label="Kode"><input name="code" className="input w-28" required pattern="[A-Za-z0-9-]{1,10}" /></Field>
         <Field label="Nama plant"><input name="name" className="input w-64" required /></Field><button className="btn">+ Tambah plant</button>
       </form>
-      <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Kode</th><th>Nama</th><th>Status</th></tr></thead>
-        <tbody>{plants.data?.map((p) => <tr key={p.id} className="border-t"><td className="p-2 font-mono">{p.code}</td><td>{p.name}</td><td>{p.active ? 'Aktif' : 'Nonaktif'}</td></tr>)}</tbody></table></div>
+      <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Kode</th><th>Nama</th><th>Jam operasi/hari</th><th>Status</th></tr></thead>
+        <tbody>{plants.data?.map((p) => <tr key={p.id} className="border-t"><td className="p-2 font-mono">{p.code}</td><td>{p.name}</td><td>{Number(p.operatingHours)} <button className="ml-1 underline" onClick={() => { const v = prompt('Jam operasi per hari (1–24), dipakai menghitung availability', String(Number(p.operatingHours))); const n = Number((v ?? '').replace(',', '.')); if (v !== null && n > 0 && n <= 24) run(() => api(`/admin/plants/${p.id}`, { method: 'PATCH', body: { operatingHours: n } })); }}>Ubah</button></td><td>{p.active ? 'Aktif' : 'Nonaktif'}</td></tr>)}</tbody></table></div>
     </div>
   );
 }

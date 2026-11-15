@@ -30,11 +30,12 @@ export function normalizePhone(raw: string): string {
 const Phone = z.string().transform(normalizePhone).refine((v) => /^\+[1-9][0-9]{7,14}$/.test(v), 'Nomor telepon tidak valid');
 const TechCreate = z.object({
   plantId: z.string().uuid(), code: z.string().regex(/^[A-Za-z0-9-]{1,20}$/), fullName: z.string().trim().min(2).max(120),
-  skill: z.string().trim().min(2).max(60), shift: z.enum(['pagi', 'siang', 'malam']), userId: z.string().uuid().nullish(), phone: Phone.nullish(),
+  skill: z.string().trim().min(2).max(60), shift: z.enum(['pagi', 'siang', 'malam']), userId: z.string().uuid().nullish(), phone: Phone.nullish(), hourlyRate: z.number().min(0).max(1e9).default(0),
 });
 const TechPatch = z.object({
   fullName: z.string().trim().min(2).max(120).optional(), skill: z.string().trim().min(2).max(60).optional(), shift: z.enum(['pagi', 'siang', 'malam']).optional(),
   userId: z.string().uuid().nullable().optional(), phone: Phone.nullable().optional(), waOptIn: z.boolean().optional(), active: z.boolean().optional(),
+  hourlyRate: z.number().min(0).max(1e9).optional(),
 });
 
 @Controller('admin')
@@ -141,7 +142,7 @@ export class AdminController {
   // ---------- plant ----------
   @Get('plants')
   plants(@Req() req: any) {
-    return this.db.tx(dbCtx(req.user), async (c) => (await c.query('select id, code, name, address, active from plants order by code')).rows);
+    return this.db.tx(dbCtx(req.user), async (c) => (await c.query('select id, code, name, address, active, operating_hours_per_day as "operatingHours" from plants order by code')).rows);
   }
 
   @Post('plants')
@@ -156,11 +157,30 @@ export class AdminController {
     } catch (e) { mapDbError(e); }
   }
 
+  @Patch('plants/:id')
+  async updatePlant(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
+    const d = parse(z.object({ name: z.string().trim().min(2).max(120).optional(), active: z.boolean().optional(), operatingHours: z.number().gt(0).max(24).optional() }), b);
+    const sets: string[] = []; const args: unknown[] = [];
+    if (d.name !== undefined) { args.push(d.name); sets.push(`name = $${args.length}`); }
+    if (d.active !== undefined) { args.push(d.active); sets.push(`active = $${args.length}`); }
+    if (d.operatingHours !== undefined) { args.push(d.operatingHours); sets.push(`operating_hours_per_day = $${args.length}`); }
+    if (!sets.length) throw new HttpException('Tidak ada perubahan', HttpStatus.BAD_REQUEST);
+    args.push(id);
+    try {
+      return await this.db.tx(dbCtx(req.user), async (c) => {
+        const r = await c.query(`update plants set ${sets.join(', ')} where id = $${args.length} returning id`, args);
+        if (!r.rows[0]) throw new HttpException('Plant tidak ditemukan', HttpStatus.NOT_FOUND);
+        await this.audit(c, req.user, 'plant_update', 'plant', id, { fields: Object.keys(d) });
+        return { id };
+      });
+    } catch (e) { mapDbError(e); }
+  }
+
   // ---------- teknisi (profil lapangan + nomor WhatsApp) ----------
   @Get('technicians')
   technicians(@Req() req: any) {
     return this.db.tx(dbCtx(req.user), async (c) => (await c.query(
-      `select id, code, full_name as "fullName", skill, shift, plant_id as "plantId", user_id as "userId", phone_e164 as phone, wa_opt_in as "waOptIn", active
+      `select id, code, full_name as "fullName", skill, shift, plant_id as "plantId", user_id as "userId", phone_e164 as phone, wa_opt_in as "waOptIn", active, hourly_rate as "hourlyRate"
          from technicians order by code`)).rows);
   }
 
@@ -169,8 +189,8 @@ export class AdminController {
     const d = parse(TechCreate, b);
     try {
       return await this.db.tx(dbCtx(req.user), async (c) => {
-        const r = await c.query(`insert into technicians (org_id, plant_id, user_id, code, full_name, skill, shift, phone_e164) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id, code`,
-          [req.user.org, d.plantId, d.userId ?? null, d.code, d.fullName, d.skill, d.shift, d.phone ?? null]);
+        const r = await c.query(`insert into technicians (org_id, plant_id, user_id, code, full_name, skill, shift, phone_e164, hourly_rate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id, code`,
+          [req.user.org, d.plantId, d.userId ?? null, d.code, d.fullName, d.skill, d.shift, d.phone ?? null, d.hourlyRate]);
         await this.audit(c, req.user, 'technician_create', 'technician', r.rows[0].id);
         return r.rows[0];
       });
@@ -190,6 +210,7 @@ export class AdminController {
         if (d.userId !== undefined) add('user_id', d.userId);
         if (d.phone !== undefined) add('phone_e164', d.phone);
         if (d.active !== undefined) add('active', d.active);
+        if (d.hourlyRate !== undefined) add('hourly_rate', d.hourlyRate);
         // opt-in WhatsApp: hanya sah bila ada nomor; waktu persetujuan dicatat
         if (d.waOptIn !== undefined) { add('wa_opt_in', d.waOptIn); sets.push(d.waOptIn ? 'wa_opt_in_at = coalesce(wa_opt_in_at, now())' : 'wa_opt_in_at = null'); }
         if (d.phone === null && d.waOptIn === undefined) { sets.push('wa_opt_in = false', 'wa_opt_in_at = null'); }

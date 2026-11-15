@@ -22,6 +22,14 @@ docker compose up -d --build
 ```
 Migrasi `db/migrations/*.sql` dijalankan otomatis oleh service `migrate` (idempoten).
 
+## Membuat organisasi & Admin pertama
+Setelah `docker compose up -d`, jalankan sekali (password acak dicetak satu kali):
+```bash
+docker compose run --rm -e OWNER_DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB" \
+  api node dist/cli/bootstrap.js --org nama-perusahaan --name "Nama Perusahaan" --plant P1 --plant-name "Plant 1" --admin admin
+```
+Login di web dengan organisasi `nama-perusahaan` dan username tersebut, lalu kelola pengguna, teknisi, dan plant di menu Administrasi.
+
 ## Menguji skema database
 ```bash
 createdb mh_test

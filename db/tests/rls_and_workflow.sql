@@ -92,4 +92,12 @@ begin;
 insert into audit_log (org_id, event) values ('00000000-0000-0000-0000-0000000000a1','uji');
 do $$ begin perform pg_temp.expect_fail($q$delete from audit_log$q$, 'append'); end $$;
 rollback;
+-- 5. provision_org menyiapkan akses modul + SLA bawaan
+begin;
+do $$ declare o uuid := provision_org('uji-provision','Uji'); begin
+  assert (select count(*) from role_modules where org_id=o and role_code='admin') = 10, 'admin 10 modul';
+  assert (select count(*) from role_modules where org_id=o and role_code='technician') = 4, 'teknisi 4 modul';
+  assert (select count(*) from sla_policies where org_id=o) = 4, '4 kebijakan SLA';
+end $$;
+rollback;
 \echo SEMUA UJI LULUS

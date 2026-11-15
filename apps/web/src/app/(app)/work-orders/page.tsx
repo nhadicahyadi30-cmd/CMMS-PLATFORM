@@ -11,7 +11,8 @@ export default function WorkOrders() {
   const { data, error, loading } = useApi<{ total: number; items: any[] }>(`/work-orders?size=100${st ? `&status=${st}` : ''}`);
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold">Work Order</h1>
+      <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Work Order</h1>
+        <Link href="/work-orders/new" className="btn">+ Buat WO</Link></div>
       <div className="flex flex-wrap gap-2">{FILTERS.map(([v, l]) => (
         <button key={v} onClick={() => setSt(v)} className={st === v ? 'btn' : 'btn-ghost'}>{l}</button>))}</div>
       {error && <p className="text-sm text-red-600">{error}</p>}

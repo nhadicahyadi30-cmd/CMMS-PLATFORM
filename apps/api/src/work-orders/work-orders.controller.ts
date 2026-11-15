@@ -63,7 +63,12 @@ export class WorkOrdersController {
       if (!r.rows[0]) throw new HttpException('WO tidak ditemukan', HttpStatus.NOT_FOUND);
       const logs = await c.query('select at, actor_text as actor, text from wo_logs where wo_id = $1 order by at, id', [id]);
       const att = await c.query('select id, kind, filename, mime, size_bytes as "sizeBytes", via, created_at as "createdAt" from wo_attachments where wo_id = $1 order by created_at', [id]);
-      return { ...r.rows[0], logs: logs.rows, attachments: att.rows };
+      const parts = await c.query(
+        `select p.id as "partId", p.code, p.name, p.unit,
+                sum(case s.kind when 'out' then s.qty else -s.qty end) as qty,
+                sum(case s.kind when 'out' then s.qty * s.unit_cost else -s.qty * s.unit_cost end) as cost
+           from stock_tx s join parts p on p.id = s.part_id where s.wo_id = $1 and s.kind in ('out','return') group by p.id having sum(case s.kind when 'out' then s.qty else -s.qty end) > 0 order by p.code`, [id]);
+      return { ...r.rows[0], logs: logs.rows, attachments: att.rows, parts: parts.rows };
     });
   }
 

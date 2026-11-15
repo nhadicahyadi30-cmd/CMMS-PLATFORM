@@ -10,8 +10,9 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | API NestJS: login/refresh/lockout, aset, WO + approval, PM, kirim & terima WhatsApp | 🟡 kode ditulis, **belum dikompilasi/dijalankan** (query SQL-nya sudah diuji ke Postgres) |
 | Web Next.js: login, aset, WO (aksi sesuai peran), PM | 🟡 kode ditulis, **belum dikompilasi/dijalankan** |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
+| Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |
 | Lampiran foto/PDF ke S3 (web + WhatsApp), bucket privat | 🟡 kode ada, belum diuji dengan S3/MinIO sungguhan |
-| Modul 5–10 produksi | ⏳ tahap selanjutnya |
+
 
 Prototipe interaktif 10 modul adalah spesifikasi fungsional untuk port ke produksi.
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
@@ -62,5 +62,31 @@ export class PmController {
       const r = await c.query('select pm_generate($1) as created', [req.user.org]);
       return { created: r.rows[0].created };
     });
+  }
+
+  /** BOM suku cadang rencana PM, lengkap dengan stok dan kekurangan. */
+  @Get('plans/:id/parts')
+  bom(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
+    return this.db.tx(dbCtx(req.user), async (c) => (await c.query(
+      `select b.part_id as "partId", p.code, p.name, p.unit, b.qty, p.on_hand as "onHand", greatest(b.qty - p.on_hand, 0) as shortage
+         from pm_parts b join parts p on p.id = b.part_id where b.pm_plan_id = $1 order by p.code`, [id])).rows);
+  }
+
+  @Put('plans/:id/parts') @Roles('admin', 'supervisor', 'planner')
+  async setBom(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
+    const items = parse(z.array(z.object({ partId: z.string().uuid(), qty: z.number().positive().max(100000) })).max(100), b);
+    try {
+      return await this.db.tx(dbCtx(req.user), async (c) => {
+        const plan = await c.query('select plant_id from pm_plans where id = $1', [id]);
+        if (!plan.rows[0]) throw new HttpException('Rencana PM tidak ditemukan', HttpStatus.NOT_FOUND);
+        await c.query('delete from pm_parts where pm_plan_id = $1', [id]);
+        for (const it of items) {
+          const ok = await c.query('select 1 from parts where id = $1 and plant_id = $2', [it.partId, plan.rows[0].plant_id]);
+          if (!ok.rows[0]) throw new HttpException('Suku cadang tidak ditemukan di plant rencana ini', HttpStatus.UNPROCESSABLE_ENTITY);
+          await c.query('insert into pm_parts (org_id, pm_plan_id, part_id, qty) values ($1,$2,$3,$4)', [req.user.org, id, it.partId, it.qty]);
+        }
+        return { count: items.length };
+      });
+    } catch (e) { mapDbError(e); }
   }
 }

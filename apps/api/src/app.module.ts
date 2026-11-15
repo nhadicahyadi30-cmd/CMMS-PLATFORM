@@ -11,6 +11,8 @@ import { WorkOrdersController } from './work-orders/work-orders.controller';
 import { PmController } from './pm/pm.controller';
 import { WhatsappController } from './whatsapp/whatsapp.controller';
 import { AdminController } from './admin/admin.controller';
+import { InventoryController } from './inventory/inventory.controller';
+import { WoPartsController } from './inventory/wo-parts.controller';
 import { StorageService } from './storage/storage.service';
 import { AttachmentsService } from './storage/attachments.service';
 import { AttachmentsController } from './storage/attachments.controller';
@@ -18,7 +20,7 @@ import { WhatsappProcessor } from './whatsapp/whatsapp.processor';
 import { WhatsappService } from './whatsapp/whatsapp.service';
 
 @Module({
-  controllers: [AuthController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
+  controllers: [AuthController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AuthService, WhatsappService, WhatsappProcessor, StorageService, AttachmentsService],
 })
 export class AppModule {}

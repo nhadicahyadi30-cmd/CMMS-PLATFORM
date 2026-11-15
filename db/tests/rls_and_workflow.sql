@@ -100,4 +100,51 @@ do $$ declare o uuid := provision_org('uji-provision','Uji'); begin
   assert (select count(*) from sla_policies where org_id=o) = 4, '4 kebijakan SLA';
 end $$;
 rollback;
+-- 6. inventory: stok hanya lewat mutasi, tidak boleh minus, PR perlu Supervisor
+begin;
+set local role maintainhub_app;
+select set_config('app.org_id', :'org1', true), set_config('app.plant_ids', :'p1', true), set_config('app.all_plants','0', true) \gset
+do $$
+declare pid uuid; w uuid; pr uuid;
+begin
+  insert into parts (id, org_id, plant_id, code, name, min_stock, unit_cost) values ('00000000-0000-0000-0000-00000000bb01','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','BRG-6205','Bearing 6205', 5, 25000) returning id into pid;
+  perform pg_temp.expect_fail($q$update parts set on_hand = 999 where code = 'BRG-6205'$q$, 'mutasi stok');
+  perform pg_temp.expect_fail($q$insert into parts (org_id, plant_id, code, name, on_hand) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','X','x', 5)$q$, 'Stok awal');
+  insert into stock_tx (org_id, plant_id, part_id, kind, qty, unit_cost, note) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1', pid, 'in', 10, 26000, 'terima awal');
+  assert (select on_hand from parts where id = pid) = 10, 'stok 10 setelah penerimaan';
+  assert (select unit_cost from parts where id = pid) = 26000, 'harga terakhir diperbarui';
+  perform pg_temp.expect_fail(format($q$insert into stock_tx (org_id, plant_id, part_id, kind, qty) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','%s','out', 11)$q$, pid), 'tidak cukup');
+  -- WO belum disetujui tidak boleh menerima suku cadang
+  insert into work_orders (id, org_id, plant_id, wo_type, title, asset_id, priority) values ('00000000-0000-0000-0000-00000000bb02','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','corrective','x','00000000-0000-0000-0000-0000000000e1','P3') returning id into w;
+  perform pg_temp.expect_fail(format($q$insert into stock_tx (org_id, plant_id, part_id, kind, qty, wo_id) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','%s','out', 1, '%s')$q$, pid, w), 'berstatus waiting');
+  update work_orders set status='approved', approved_by='00000000-0000-0000-0000-0000000000c2' where id = w;
+  insert into stock_tx (org_id, plant_id, part_id, kind, qty, wo_id) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1', pid, 'out', 4, w);
+  assert (select on_hand from parts where id = pid) = 6, 'stok 6 setelah keluar 4';
+  assert (select unit_cost from stock_tx where wo_id = w) = 26000, 'biaya WO memakai harga saat itu';
+  insert into stock_tx (org_id, plant_id, part_id, kind, qty, wo_id) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1', pid, 'return', 1, w);
+  assert (select on_hand from parts where id = pid) = 7, 'retur menambah stok';
+  perform pg_temp.expect_fail(format($q$insert into stock_tx (org_id, plant_id, part_id, kind, qty) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','%s','adjust', -1)$q$, pid), 'stock_tx_check1');
+  insert into stock_tx (org_id, plant_id, part_id, kind, qty, note) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1', pid, 'adjust', -2, 'opname: rusak');
+  assert (select on_hand from parts where id = pid) = 5, 'penyesuaian -2';
+  perform pg_temp.expect_fail($q$update stock_tx set qty = 1$q$, 'permission denied');
+  -- PR
+  insert into purchase_requests (org_id, plant_id, requested_by) values ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000b1','00000000-0000-0000-0000-0000000000c3') returning id into pr;
+  assert (select code from purchase_requests where id = pr) ~ '^PR-P1-[0-9]{4}-0001$', 'kode PR';
+  perform pg_temp.expect_fail(format($q$update purchase_requests set status='submitted' where id='%s'$q$, pr), 'tanpa item');
+  insert into pr_items (org_id, pr_id, part_id, qty) values ('00000000-0000-0000-0000-0000000000a1', pr, pid, 20);
+  update purchase_requests set status='submitted' where id = pr;
+  perform pg_temp.expect_fail(format($q$insert into pr_items (org_id, pr_id, part_id, qty) values ('00000000-0000-0000-0000-0000000000a1','%s','%s',1)$q$, pr, pid), 'draft');
+  perform pg_temp.expect_fail(format($q$update purchase_requests set status='approved', approved_by='00000000-0000-0000-0000-0000000000c3' where id='%s'$q$, pr), 'Supervisor');
+  update purchase_requests set status='approved', approved_by='00000000-0000-0000-0000-0000000000c2' where id = pr;
+  update purchase_requests set status='ordered' where id = pr;
+  update pr_items set qty_received = 20 where pr_id = pr;
+  update purchase_requests set status='received' where id = pr;
+  perform pg_temp.expect_fail(format($q$update purchase_requests set notes='x' where id='%s'$q$, pr), 'tidak dapat diubah');
+end $$;
+rollback;
+-- isolasi: plant lain tidak terlihat
+begin; set local role maintainhub_app;
+select set_config('app.org_id', :'org1', true), set_config('app.plant_ids', '', true), set_config('app.all_plants','0', true) \gset
+do $$ begin assert (select count(*) from parts) = 0, 'tanpa plant tidak melihat suku cadang'; end $$;
+rollback;
 \echo SEMUA UJI LULUS

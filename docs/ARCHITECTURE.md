@@ -2,7 +2,7 @@
 
 ## Stack
 Next.js + TypeScript + Tailwind (web) · NestJS (API) · PostgreSQL 16 · S3-compatible (MinIO/S3) untuk foto/lampiran · Nginx · Docker Compose (portabel VPS/cloud/on-prem) · GitHub Actions CI.
-Tahap lanjut: pgvector + Claude API (Modul 5), TimescaleDB (data sensor/energi), antrean job (BullMQ/Redis) untuk reminder & webhook.
+Asisten AI memanggil Claude API (Messages) dari backend; basis pengetahuan memakai pencarian teks penuh Postgres (konfigurasi `indonesian`), tanpa ekstensi tambahan. Tahap lanjut bila diperlukan: pgvector untuk pencarian semantik, TimescaleDB (data sensor/energi), antrean job (BullMQ/Redis) untuk reminder & webhook.
 
 ## Multi-tenant & multi-plant
 Satu database; setiap tabel bisnis membawa `org_id` (dan `plant_id` bila ber-plant). Row-Level Security memaksa isolasi di level DB, bukan hanya di aplikasi. Per transaksi, API menyetel:
@@ -24,7 +24,9 @@ argon2id (format dicek constraint), refresh token disimpan sebagai hash, secret 
 Cloud API resmi Meta: template utility, opt-in teknisi (`wa_opt_in`), webhook idempoten (`wa_webhook_events.event_key`), pesan masuk → lampiran/log WO.
 
 ## Peta jalan
-1. Fondasi + modul 1–4 (sedang berjalan) 2. Modul 6 & 9 3. Modul 7 & 8 4. Modul 5 (LLM + pgvector) 5. Modul 10 lanjutan (SSO, audit lanjutan).
+Selesai di kode: modul 1–9 dan fondasi modul 10 (multi-plant, pengguna, RBAC). Berikutnya: penerapan pertama ke server nyata, uji S3/WhatsApp/Claude API dengan kredensial sungguhan, pemeriksaan visual di browser, lalu modul 10 lanjutan (SSO, audit lanjutan), ingest alarm via API-key dari SCADA/PLC, dan pgvector bila pencarian kata kunci kurang.
 
 ## Batasan saat ini
-Kode backend/frontend belum dikompilasi/diuji di lingkungan pembuatan (tanpa akses npm/Docker); hanya SQL yang diuji pada Postgres nyata.
+Backend/frontend dikompilasi dan di-build oleh CI, tetapi belum pernah dijalankan end-to-end (tanpa Docker/npm di lingkungan pembuatan); logika bisnis yang ada di SQL diuji pada Postgres nyata.
+Asisten AI: memberi saran saja (tidak punya aksi), jawaban selalu dengan sumber, batas pemakaian per pengguna per jam, teks dari database dinetralkan sebelum masuk prompt. Basis pengetahuan berlaku untuk seluruh organisasi, bukan per plant.
+Target KPI (95/90/90) masih nilai bawaan di kode, belum menjadi pengaturan organisasi.

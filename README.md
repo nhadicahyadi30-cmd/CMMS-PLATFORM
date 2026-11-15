@@ -7,11 +7,13 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 |---|---|
 | Skema DB (PostgreSQL 16, RLS, trigger alur WO) | ✅ selesai, lolos uji (`db/tests`) |
 | Infrastruktur (Docker Compose, Nginx, backup, CI) | ✅ sintaks tervalidasi, belum dijalankan end-to-end |
-| API NestJS: login/refresh/lockout, aset, WO + approval, PM, kirim & terima WhatsApp | 🟡 kode ditulis, **belum dikompilasi/dijalankan** (query SQL-nya sudah diuji ke Postgres) |
-| Web Next.js: login, aset, WO (aksi sesuai peran), PM | 🟡 kode ditulis, **belum dikompilasi/dijalankan** |
+| API NestJS dan Web Next.js (semua modul) | 🟡 lolos kompilasi + build di CI; **belum pernah dijalankan end-to-end** dan belum dilihat di browser sungguhan |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
 | Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |
 | Modul 9 Dashboard KPI: availability, MTTR, MTBF, kepatuhan PM, SLA, backlog, Pareto, biaya, ekspor CSV | 🟡 rumus DB teruji dengan data hitungan manual; API/UI baru dikompilasi CI |
+| Modul 5 AI Assistant: basis pengetahuan (pencarian teks penuh), tanya-jawab Claude dengan sumber, alarm + diagnosis awal + buat WO | 🟡 pencarian & alarm teruji di DB; pemanggilan Claude API belum diuji dengan kunci sungguhan. Tanpa `ANTHROPIC_API_KEY` otomatis jatuh ke mode pencarian saja |
+| Modul 7 Electrical & Utility: energi per lini/utilitas (harian/shift/rentang/PO), tarif, kWh/ton, model beban dasar, anomali, impor CSV | 🟡 rumus & aturan bentrok teruji dengan data hitungan manual |
+| Modul 8 RCA & Failure: siklus PDCA bergerbang, 5 Why, fishbone 6M, tindakan terverifikasi Supervisor, FMEA (RPN), Pareto penyebab | 🟡 gerbang tahap & RPN teruji di DB |
 | Lampiran foto/PDF ke S3 (web + WhatsApp), bucket privat | 🟡 kode ada, belum diuji dengan S3/MinIO sungguhan |
 
 
@@ -39,6 +41,9 @@ for f in db/migrations/*.sql; do psql -d mh_test -v ON_ERROR_STOP=1 -f $f; done
 psql -d mh_test -f db/seed/dev_seed.sql
 psql -d mh_test -f db/tests/rls_and_workflow.sql   # harus berakhir: SEMUA UJI LULUS
 psql -d mh_test -f db/tests/kpi.sql                # harus berakhir: UJI KPI LULUS
+psql -d mh_test -f db/tests/rca.sql                # UJI RCA LULUS
+psql -d mh_test -f db/tests/energy.sql             # UJI ENERGI LULUS
+psql -d mh_test -f db/tests/ai.sql                 # UJI AI LULUS
 ```
 Seed hanya untuk dev (hash password placeholder).
 

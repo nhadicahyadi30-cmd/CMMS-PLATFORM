@@ -7,6 +7,7 @@ import Badge from '@/components/Badge';
 import Attachments from '@/components/Attachments';
 import WoParts from '@/components/WoParts';
 import Field from '@/components/Field';
+import AskAi from '@/components/AskAi';
 
 export default function WoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -59,6 +60,7 @@ export default function WoDetail() {
         </form>)}
       <WoParts woId={id} plantId={w.plantId} items={w.parts ?? []} canEdit={['approved', 'assigned', 'progress', 'done'].includes(w.status)} onChange={reload} />
       <Attachments woId={id} items={w.attachments ?? []} canAdd={!['closed', 'rejected'].includes(w.status)} onChange={reload} />
+      {getUser()?.modules.includes(5) && <details className="card"><summary className="cursor-pointer text-sm font-semibold">Tanya AI tentang WO ini</summary><div className="mt-3"><AskAi woId={id} assetId={w.assetId} /></div></details>}
       <section className="card"><h2 className="mb-2 text-sm font-semibold">Riwayat</h2>
         <ul className="space-y-1 text-sm">{w.logs.map((l: any, i: number) => (
           <li key={i}><span className="text-slate-500">{new Date(l.at).toLocaleString('id-ID')}</span> — {l.actor}: {l.text}</li>))}</ul></section>

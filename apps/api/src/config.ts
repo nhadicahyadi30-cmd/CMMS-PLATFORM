@@ -18,6 +18,13 @@ export const config = {
     get accessKey() { return need('S3_ACCESS_KEY'); },
     get secretKey() { return need('S3_SECRET_KEY'); },
   },
+  ai: {
+    key: process.env.ANTHROPIC_API_KEY ?? '',
+    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5',
+    maxTokens: 1024,
+    perHour: Number(process.env.AI_MAX_PER_HOUR) > 0 ? Number(process.env.AI_MAX_PER_HOUR) : 60,
+    timeoutMs: 30_000,
+  },
   maxUploadBytes: 10 * 1024 * 1024,
   wa: {
     phoneId: process.env.WA_PHONE_NUMBER_ID ?? '',

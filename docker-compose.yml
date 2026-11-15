@@ -28,7 +28,7 @@ services:
     entrypoint: ["bash", "/migrate.sh"]
     networks: [internal]
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     restart: unless-stopped
     command: server /data
     environment:

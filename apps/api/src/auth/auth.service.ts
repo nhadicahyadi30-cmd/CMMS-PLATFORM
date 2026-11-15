@@ -22,7 +22,7 @@ export class AuthService {
     const u = rows[0];
     if (!u) { await argon2.hash(password).catch(() => undefined); throw new UnauthorizedException('Username atau password salah'); } // samarkan waktu respons
     if (u.locked_until && new Date(u.locked_until) > new Date())
-      throw new HttpException('Akun terkunci sementara. Coba lagi nanti.', HttpStatus.LOCKED);
+      throw new HttpException('Akun terkunci sementara. Coba lagi nanti.', 423);
     const ok = u.active && (await argon2.verify(u.password_hash, password).catch(() => false));
     if (!ok) {
       await p.query(

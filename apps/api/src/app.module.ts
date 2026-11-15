@@ -10,10 +10,11 @@ import { AssetsController } from './assets/assets.controller';
 import { WorkOrdersController } from './work-orders/work-orders.controller';
 import { PmController } from './pm/pm.controller';
 import { WhatsappController } from './whatsapp/whatsapp.controller';
+import { WhatsappProcessor } from './whatsapp/whatsapp.processor';
 import { WhatsappService } from './whatsapp/whatsapp.service';
 
 @Module({
   controllers: [AuthController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
-  providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AuthService, WhatsappService],
+  providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AuthService, WhatsappService, WhatsappProcessor],
 })
 export class AppModule {}

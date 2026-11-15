@@ -39,4 +39,18 @@ export class WhatsappService {
        values ($1,'out',$2,$3,$4,$5,'template',$6,$7,$8)`,
       [u.org, wo.tech_id, woId, waId, wo.phone_e164, tpl.name, res.ok ? 'sent' : 'failed', res.ok ? null : String(body?.error?.code ?? res.status)]));
   }
+
+  /** Balasan teks bebas (hanya sah di jendela 24 jam setelah pesan teknisi). */
+  async sendText(ctx: DbContext, orgId: string, techId: string, toE164: string, text: string): Promise<void> {
+    if (!config.wa.token || !config.wa.phoneId) return;
+    const res = await fetch(`https://graph.facebook.com/v21.0/${config.wa.phoneId}/messages`, {
+      method: 'POST', headers: { Authorization: `Bearer ${config.wa.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messaging_product: 'whatsapp', to: toE164.replace('+', ''), type: 'text', text: { body: text.slice(0, 1500) } }),
+    });
+    const body: any = await res.json().catch(() => ({}));
+    await this.db.tx(ctx, (c) => c.query(
+      `insert into wa_messages (org_id, direction, technician_id, wa_message_id, to_e164, msg_type, body, status, error_code)
+       values ($1,'out',$2,$3,$4,'text',$5,$6,$7)`,
+      [orgId, techId, body?.messages?.[0]?.id ?? null, toE164, text.slice(0, 2000), res.ok ? 'sent' : 'failed', res.ok ? null : String(body?.error?.code ?? res.status)]));
+  }
 }

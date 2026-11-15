@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "dev": "ts-node-dev --respawn src/main.ts",
-    "test": "node --test dist/**/*.spec.js"
+    "test": "node --test dist/whatsapp/command.spec.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",

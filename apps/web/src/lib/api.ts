@@ -28,3 +28,20 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Terjadi kesalahan');
   return d as T;
 }
+
+/** Unggah berkas sebagai badan mentah (server memvalidasi isi berkas, bukan ekstensi). */
+export async function uploadFile<T = any>(path: string, file: File, retry = true): Promise<T> {
+  const r = await fetch(`/api${path}`, { method: 'PUT', headers: { 'content-type': file.type || 'application/octet-stream', ...(token ? { authorization: `Bearer ${token}` } : {}) }, body: file });
+  if (r.status === 401 && retry && (await bootstrap())) return uploadFile<T>(path, file, false);
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Unggah gagal');
+  return d as T;
+}
+
+/** Ambil berkas terproteksi sebagai object URL (butuh header Authorization, jadi tidak bisa lewat <img src> langsung). */
+export async function fetchBlobUrl(path: string, retry = true): Promise<string> {
+  const r = await fetch(`/api${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+  if (r.status === 401 && retry && (await bootstrap())) return fetchBlobUrl(path, false);
+  if (!r.ok) throw new ApiError(r.status, 'Berkas tidak bisa dimuat');
+  return URL.createObjectURL(await r.blob());
+}

@@ -53,4 +53,16 @@ export class WhatsappService {
        values ($1,'out',$2,$3,$4,'text',$5,$6,$7)`,
       [orgId, techId, body?.messages?.[0]?.id ?? null, toE164, text.slice(0, 2000), res.ok ? 'sent' : 'failed', res.ok ? null : String(body?.error?.code ?? res.status)]));
   }
+
+  /** Unduh media kiriman teknisi (2 langkah: ambil URL dari media id, lalu unduh dengan token). Dibatasi 10 MB. */
+  async downloadMedia(mediaId: string): Promise<Uint8Array> {
+    const meta: any = await (await fetch(`https://graph.facebook.com/v21.0/${encodeURIComponent(mediaId)}`, { headers: { Authorization: `Bearer ${config.wa.token}` } })).json();
+    if (!meta?.url || !/^https:\/\//.test(meta.url)) throw new Error('URL media tidak valid');
+    if (meta.file_size && Number(meta.file_size) > config.maxUploadBytes) throw new Error('Media melebihi 10 MB');
+    const r = await fetch(meta.url, { headers: { Authorization: `Bearer ${config.wa.token}` } });
+    if (!r.ok) throw new Error(`Unduh media gagal (${r.status})`);
+    const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.length > config.maxUploadBytes) throw new Error('Media melebihi 10 MB');
+    return buf;
+  }
 }

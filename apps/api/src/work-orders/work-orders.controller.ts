@@ -62,7 +62,8 @@ export class WorkOrdersController {
       const r = await c.query(`select ${COLS} ${FROM} where w.id = $1`, [id]);
       if (!r.rows[0]) throw new HttpException('WO tidak ditemukan', HttpStatus.NOT_FOUND);
       const logs = await c.query('select at, actor_text as actor, text from wo_logs where wo_id = $1 order by at, id', [id]);
-      return { ...r.rows[0], logs: logs.rows };
+      const att = await c.query('select id, kind, filename, mime, size_bytes as "sizeBytes", via, created_at as "createdAt" from wo_attachments where wo_id = $1 order by created_at', [id]);
+      return { ...r.rows[0], logs: logs.rows, attachments: att.rows };
     });
   }
 

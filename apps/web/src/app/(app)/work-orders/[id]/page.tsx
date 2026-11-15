@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import Badge from '@/components/Badge';
+import Attachments from '@/components/Attachments';
 
 export default function WoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +43,7 @@ export default function WoDetail() {
           <button className="btn-ghost" disabled={busy} onClick={() => act('return')}>Kembalikan</button></>}
         {msg && <span role="alert" className="text-sm text-red-600">{msg}</span>}
       </div>
+      <Attachments woId={id} items={w.attachments ?? []} canAdd={!['closed', 'rejected'].includes(w.status)} onChange={reload} />
       <section className="card"><h2 className="mb-2 text-sm font-semibold">Riwayat</h2>
         <ul className="space-y-1 text-sm">{w.logs.map((l: any, i: number) => (
           <li key={i}><span className="text-slate-500">{new Date(l.at).toLocaleString('id-ID')}</span> — {l.actor}: {l.text}</li>))}</ul></section>

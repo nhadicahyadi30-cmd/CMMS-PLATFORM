@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { DbService, DbContext } from '../db/db.service';
 import { WhatsappService } from './whatsapp.service';
 import { parseCommand, HELP_TEXT, WaCommand } from './command';
+import { AttachmentsService } from '../storage/attachments.service';
 import { config } from '../config';
 
 interface Tech { id: string; org_id: string; plant_id: string; user_id: string | null; full_name: string; phone_e164: string; wa_opt_in: boolean }
@@ -16,7 +17,7 @@ export class WhatsappProcessor implements OnModuleInit, OnModuleDestroy {
   private log = new Logger('WaProcessor');
   private timer?: NodeJS.Timeout;
   private running = false;
-  constructor(private db: DbService, private wa: WhatsappService) {}
+  constructor(private db: DbService, private wa: WhatsappService, private att: AttachmentsService) {}
 
   onModuleInit() {
     if (!config.wa.appSecret) return; // WA tidak dikonfigurasi
@@ -87,11 +88,35 @@ export class WhatsappProcessor implements OnModuleInit, OnModuleDestroy {
        values ($1,'in',$2,$3,$4,$5,$6,'received') on conflict (org_id, wa_message_id) where wa_message_id is not null do nothing returning id`,
       [tech.org_id, tech.id, m.id, tech.phone_e164, ['text', 'image', 'document', 'audio', 'interactive', 'location'].includes(type) ? type : 'other', body.slice(0, 2000)])).rowCount);
     if (!fresh) return;
+    if (type === 'image' || type === 'document') {
+      await this.reply(ctx, tech, await this.saveMedia(ctx, tech, m, type, body));
+      return;
+    }
     if (type !== 'text') {
-      await this.reply(ctx, tech, 'Pesan media diterima, tetapi foto/lampiran lewat WhatsApp belum diproses. Gunakan aplikasi web untuk melampirkan foto. Ketik BANTUAN untuk daftar perintah.');
+      await this.reply(ctx, tech, 'Jenis pesan ini belum didukung. Ketik BANTUAN untuk daftar perintah.');
       return;
     }
     await this.reply(ctx, tech, await this.run(ctx, tech, parseCommand(body)));
+  }
+
+  /** Foto/dokumen dari teknisi -> lampiran WO. WO ditentukan dari nomor di keterangan, atau satu-satunya tugas aktif. */
+  private async saveMedia(ctx: DbContext, tech: Tech, m: any, type: 'image' | 'document', caption: string): Promise<string> {
+    const code = /WO-[A-Z0-9]{1,10}-\d{4}-\d{4}/i.exec(caption)?.[0].toUpperCase();
+    const target = await this.db.tx(ctx, async (c) => {
+      const r = code
+        ? await c.query(`select id, code from work_orders where code = $1 and technician_id = $2`, [code, tech.id])
+        : await c.query(`select id, code from work_orders where technician_id = $1 and status in ('assigned','progress') order by created_at limit 2`, [tech.id]);
+      return r.rows;
+    });
+    if (!target.length) return code ? `WO ${code} tidak ditemukan di tugas Anda.` : 'Tidak ada tugas aktif. Tulis nomor WO di keterangan foto.';
+    if (target.length > 1) return 'Anda punya lebih dari satu tugas aktif. Kirim ulang foto dengan nomor WO di keterangan (contoh: WO-P1-2611-0001).';
+    try {
+      const data = await this.wa.downloadMedia(m[type].id);
+      await this.att.save(ctx, { orgId: tech.org_id, userId: tech.user_id, name: tech.full_name }, target[0].id, data, type === 'document' ? m.document?.filename : undefined, 'whatsapp', m.id);
+      return `Lampiran tersimpan di ${target[0].code}.`;
+    } catch (e: any) {
+      return `Lampiran tidak bisa disimpan: ${e?.message ?? 'galat'}`;
+    }
   }
 
   private async run(ctx: DbContext, tech: Tech, cmd: WaCommand): Promise<string> {

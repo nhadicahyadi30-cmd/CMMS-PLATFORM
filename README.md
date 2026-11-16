@@ -1,6 +1,6 @@
 # MaintHub
 
-> **Predict. Maintain. Optimize.**
+> **Predict. Maintain. Optimize. Connected.**
 
 ![MaintHub](apps/web/brand/logo-horizontal.svg)
 

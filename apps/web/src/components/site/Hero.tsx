@@ -38,8 +38,8 @@ export default function Hero() {
       <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-5 sm:px-8 lg:grid-cols-[1.05fr_1fr]">
         <div ref={copy} className="will-change-transform">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs uppercase tracking-[0.18em] text-slate-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-400" />CMMS platform for modern manufacturing</p>
-          <h1 className="text-[clamp(2.8rem,8vw,6.4rem)] font-semibold leading-[1.02] tracking-tight">
-            {TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? 'text-stone-100' : i === 1 ? 'text-blue-400' : 'text-grad'}`}>{w}</span>)}
+          <h1 className="text-[clamp(2.6rem,7vw,5.4rem)] font-semibold leading-[1.04] tracking-tight">
+            {TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? 'text-stone-100' : i === 1 ? 'text-blue-400' : i === 2 ? 'text-teal-300' : 'text-grad'}`}>{w}</span>)}
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-300">Satu platform untuk Work Order, Preventive Maintenance, Spare Parts, KPI, hingga Root Cause Analysis. Tim lapangan tahu apa yang harus dikerjakan, manajemen melihat kondisi mesin yang sebenarnya.</p>
           <div className="mt-9 flex flex-wrap gap-3">

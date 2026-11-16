@@ -22,7 +22,7 @@ export default function Login() {
       <div className="relative z-10 grid w-full max-w-5xl items-center gap-12 lg:grid-cols-2">
         <section className="hidden text-white lg:block">
           <Link href="/" aria-label="Ke beranda"><Logo size={60} dark /></Link>
-          <h1 className="mt-10 text-5xl font-semibold leading-[1.1] tracking-tight">{TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? '' : i === 1 ? 'text-blue-400' : 'text-teal-400'}`}>{w}</span>)}</h1>
+          <h1 className="mt-10 text-5xl font-semibold leading-[1.08] tracking-tight">{TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? '' : i === 1 ? 'text-blue-400' : i === 2 ? 'text-teal-300' : 'text-teal-400'}`}>{w}</span>)}</h1>
           <ul className="mt-8 space-y-3 text-sm text-slate-300">
             {POINTS.map((p) => <li key={p} className="flex gap-3"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-400" />{p}</li>)}
           </ul>

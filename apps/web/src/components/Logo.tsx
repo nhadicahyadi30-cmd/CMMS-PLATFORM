@@ -13,16 +13,16 @@ export function LogoMark({ size = 32, className = '' }: { size?: number; classNa
   );
 }
 
-export const TAGLINE = 'Predict. Maintain. Optimize.';
-export const TAGLINE_WORDS = ['Predict.', 'Maintain.', 'Optimize.'];
+export const TAGLINE = 'Predict. Maintain. Optimize. Connected.';
+export const TAGLINE_WORDS = ['Predict.', 'Maintain.', 'Optimize.', 'Connected.'];
 
-export default function Logo({ size = 32, tagline = false, dark = true }: { size?: number; tagline?: boolean; dark?: boolean }) {
+export default function Logo({ size = 32, tagline = false, dark = true, compact = false }: { size?: number; tagline?: boolean; dark?: boolean; compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
       <LogoMark size={size} />
       <div className="leading-none">
         <div className={`text-[1.2rem] font-medium tracking-tight ${dark ? 'text-stone-100' : 'text-slate-900'}`}>Maint<span className="text-teal-400">Hub</span></div>
-        {tagline && <div className={`mt-1.5 text-[0.6rem] uppercase tracking-[0.18em] ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{TAGLINE}</div>}
+        {tagline && <div className={`${compact ? 'max-sm:hidden ' : ''}mt-1.5 text-[0.6rem] uppercase tracking-[0.18em] ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{TAGLINE}</div>}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" role="img" aria-label="MaintHub — Predict. Maintain. Optimize.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" role="img" aria-label="MaintHub — Predict. Maintain. Optimize. Connected.">
 <svg x="4" y="2" width="56" height="76" viewBox="222 26 180 250"><path d="M302 54.1A17 17 0 0 1 328 54.1" fill="none" stroke="#12c4b4" stroke-width="4.5" stroke-linecap="round"/><path d="M294.3 47.6A27 27 0 0 1 335.7 47.6" fill="none" stroke="#0c7468" stroke-width="4.5" stroke-linecap="round"/><path d="M315 73V90" stroke="#12c4b4" stroke-width="3.5" stroke-linecap="round"/><circle cx="315" cy="65" r="8" fill="#12c4b4"/><path d="M240 130 315 88 390 130 315 170Z" fill="#12c4b4"/><path d="M231 136 309 181V268L231 224Z" fill="#2f6bff"/><path d="M321 181 399 136V224L321 268Z" fill="#1f47c8"/></svg>
 <text x="76" y="44" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="34" font-weight="600" letter-spacing="-0.6" fill="#0b1426">Maint<tspan fill="#0fa89a">Hub</tspan></text>
-<text x="77" y="64" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" letter-spacing="2.6" fill="#5b6b82">PREDICT. MAINTAIN. OPTIMIZE.</text>
+<text x="77" y="64" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" letter-spacing="2.2" fill="#5b6b82">PREDICT. MAINTAIN. OPTIMIZE. CONNECTED.</text>
 </svg>

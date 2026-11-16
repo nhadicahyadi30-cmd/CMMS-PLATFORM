@@ -1,6 +1,6 @@
 # MaintHub
 
-> **Rawat Cerdas. Produksi Tanpa Henti.**
+> **Predict. Maintain. Optimize.**
 
 ![MaintHub](apps/web/brand/logo-horizontal.svg)
 

@@ -7,6 +7,7 @@ export default {
     extend: {
       fontFamily: { sans: ['Inter', 'Segoe UI', 'system-ui', '-apple-system', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'] },
       colors: {
+        teal: { 300: '#5fe0d2', 400: '#12c4b4', 500: '#0fa89a', 600: '#0c8a7f' },
         ink: { 950: '#070d1a', 900: '#0b1426', 800: '#111d35', 700: '#1b2a47' },
         blue: { 50: '#eef5ff', 100: '#d9e8ff', 200: '#b9d4ff', 300: '#8bb8fb', 400: '#5a97f5', 500: '#2f7cf0', 600: '#1f66d6', 700: '#1a54b0', 800: '#1b478f', 900: '#1b3d73' },
       },

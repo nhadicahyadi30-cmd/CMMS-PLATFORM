@@ -46,7 +46,7 @@ export default function Shell({ children }: { children: ReactNode }) {
     bootstrap().then((u) => { if (!u) router.replace('/login'); else { setUser(u); setReady(true); } });
   }, [user, router]);
   useEffect(() => setOpen(false), [path]);
-  if (!ready || !user) return <div className="flex min-h-screen items-center justify-center bg-ink-950"><div className="animate-pulse"><Logo size={44} dark /></div></div>;
+  if (!ready || !user) return <div className="flex min-h-screen items-center justify-center bg-ink-950"><div className="animate-pulse"><Logo size={56} dark /></div></div>;
 
   const items = NAV.filter((n) => user.modules.includes(n.m) && (n.href !== '/import' || user.role !== 'technician'));
   const groups = [...new Set(items.map((n) => n.group))];
@@ -54,7 +54,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   const side = (
     <aside className="flex h-full w-64 flex-col bg-ink-900 text-slate-300">
-      <div className="border-b border-white/5 px-5 py-5"><Link href="/work-orders" aria-label="MaintHub beranda"><Logo size={34} tagline /></Link></div>
+      <div className="border-b border-white/5 px-5 py-5"><Link href="/work-orders" aria-label="MaintHub beranda"><Logo size={40} tagline /></Link></div>
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm" aria-label="Navigasi utama">
         {groups.map((g) => (
           <div key={g}>
@@ -65,8 +65,8 @@ export default function Shell({ children }: { children: ReactNode }) {
                 return (
                   <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined}
                     className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition ${on ? 'bg-white/10 font-medium text-white' : 'hover:bg-white/5 hover:text-white'}`}>
-                    {on && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />}
-                    <span className={on ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-300'}><NavIcon d={I[n.icon]} /></span>
+                    {on && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gradient-to-b from-blue-400 to-teal-400" />}
+                    <span className={on ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}><NavIcon d={I[n.icon]} /></span>
                     {n.label}
                   </Link>
                 );
@@ -77,7 +77,7 @@ export default function Shell({ children }: { children: ReactNode }) {
       </nav>
       <div className="border-t border-white/5 p-3">
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-semibold text-ink-950" aria-hidden="true">{initials}</div>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-teal-400 text-xs font-semibold text-ink-950" aria-hidden="true">{initials}</div>
           <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-white">{user.name}</div><div className="text-xs text-slate-500">{ROLE[user.role] ?? user.role}</div></div>
           <button className="rounded-md p-1.5 text-slate-500 transition hover:bg-white/10 hover:text-white" title="Keluar" aria-label="Keluar" onClick={async () => { await logout(); router.replace('/login'); }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
@@ -91,7 +91,7 @@ export default function Shell({ children }: { children: ReactNode }) {
     <div className="min-h-screen lg:flex">
       <div className="hidden shrink-0 lg:block"><div className="sticky top-0 h-screen">{side}</div></div>
       <div className="sticky top-0 z-30 flex items-center justify-between bg-ink-900 px-4 py-3 lg:hidden">
-        <Logo size={28} />
+        <Logo size={30} />
         <button className="rounded-md p-2 text-slate-300 hover:bg-white/10" aria-label="Buka menu" aria-expanded={open} onClick={() => setOpen(true)}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
         </button>

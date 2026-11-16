@@ -10,6 +10,7 @@
 // Contoh LAN: "http://192.168.1.50/api/ingest/readings"   (http, tanpa TLS: hanya untuk jaringan tertutup)
 // Contoh internet: "https://cmms.perusahaan.com/api/ingest/readings"
 #define MH_URL           "http://192.168.1.50/api/ingest/readings"
+// Lewat Node-RED:  MH_URL "http://IP-NODERED:1880/mainthub/ingest" dan MH_API_KEY "" (kunci disimpan di Node-RED)
 #define MH_API_KEY       "mhk_ISI_KUNCI_DARI_MENU_TELEMETRI"
 #define MH_ASSET         "PMP-203"     // kode aset persis seperti di menu Aset & Equipment
 #define MH_PLANT         ""            // isi kode plant bila kode aset sama ada di beberapa plant, selain itu kosongkan

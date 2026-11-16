@@ -125,7 +125,7 @@ done:
 #endif
     http.begin(tls, MH_URL);
   } else http.begin(plain, MH_URL);
-  http.setTimeout(10000); http.addHeader("Content-Type", "application/json"); http.addHeader("x-api-key", MH_API_KEY);
+  http.setTimeout(10000); http.addHeader("Content-Type", "application/json"); if (strlen(MH_API_KEY)) http.addHeader("x-api-key", MH_API_KEY);   // kosong = lewat Node-RED (kunci disimpan di sana)
   int code = http.POST((uint8_t*)body, len); String resp = code > 0 ? http.getString() : ""; http.end();
 
   if (code == 200) {

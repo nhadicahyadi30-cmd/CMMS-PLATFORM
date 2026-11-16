@@ -56,6 +56,14 @@ Gunakan **ADC1** (GPIO32–39) untuk arus; ADC2 tidak dapat dipakai saat Wi-Fi m
 
 Perintah serial: `status` (ringkasan), `sethours <jam>`.
 
+### 5b. Lewat Node-RED (opsional, disarankan bila sudah ada Node-RED di pabrik)
+Alur: ESP32 → Node-RED → MaintHub. Keuntungan: API key tidak ada di ESP32, dan Node-RED bisa juga menerima PLC/MQTT lain.
+1. Node-RED → menu ☰ → *Import* → pilih `tools/nodered/mainthub-flow.json` → Deploy.
+2. Buka tab **MaintHub gateway** → *Environment Variables*: isi `MAINTHUB_URL` (mis. `http://192.168.1.50`) dan `MAINTHUB_KEY`. Ikon node *GET /api/ingest/ping* menjadi hijau bila kunci benar.
+3. Di `config.h` ESP32: `MH_URL "http://IP-NODERED:1880/mainthub/ingest"` dan `MH_API_KEY ""`.
+4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Firmware ESP32 di repo ini memakai jalur HTTP, bukan MQTT.
+Catatan: endpoint `/mainthub/ingest` di Node-RED tidak memakai autentikasi. Batasi di jaringan internal/VLAN, atau aktifkan `httpNodeAuth` di settings.js Node-RED.
+
 ## 6. Cara kerja & batasannya
 - **Running hour** bertambah hanya saat input status jalan aktif (atau arus > `RUN_CURRENT_A` jika tanpa kabel kontak, dengan resolusi ±30 dtk). Disimpan ke flash tiap 10 menit dan setiap mesin start/stop; listrik mati paling banyak kehilangan 10 menit hitungan.
 - **Offline**: bila Wi-Fi/server putus, sampel disimpan di memori (maks ≈ 2 jam, yang terlama dibuang) dan dikirim saat tersambung, dengan **waktu asli** pembacaan. Kirim ulang aman (duplikat diabaikan server). Data tersimpan di RAM: bila ESP32 mati listrik saat offline, antrean hilang; yang tidak hilang hanya running hour.

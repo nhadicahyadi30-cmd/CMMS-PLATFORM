@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Services', description: 'Implementas
 export default function Services() {
   return (
     <>
-      <PageHero eyebrow="Services" title={<>Great software is half the story. <span className="text-grad">We help your team make it stick.</span></>}>
+      <PageHero eyebrow="Services" title={<>Technology is half the solution. <span className="text-grad">We make sure your team adopts it.</span></>}>
         CMMS berhasil kalau dipakai teknisi setiap hari, bukan sekadar terpasang. Layanan kami fokus ke situ.
       </PageHero>
       <section className="px-5 pb-24 sm:px-8">

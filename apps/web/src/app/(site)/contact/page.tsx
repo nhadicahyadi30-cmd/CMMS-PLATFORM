@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Contact & Demo', description: 'Minta
 export default function Contact() {
   return (
     <>
-      <PageHero eyebrow="Contact" title={<>Let's talk about <span className="text-grad">your plant.</span></>}>Ceritakan singkat tentang pabrik Anda. Kami balas dengan usulan jadwal demo.</PageHero>
+      <PageHero eyebrow="Contact" title={<>Let's talk about <span className="text-grad">your plant’s reliability.</span></>}>Ceritakan singkat tentang pabrik Anda. Kami balas dengan usulan jadwal demo.</PageHero>
       <section className="px-5 pb-28 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.3fr]">
           <div className="space-y-6 text-slate-300">

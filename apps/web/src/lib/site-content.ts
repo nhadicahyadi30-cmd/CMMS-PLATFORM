@@ -30,10 +30,10 @@ export const SERVICES = [
   { name: 'Ongoing Support', desc: 'Pembaruan rutin, cadangan database harian, dan jalur bantuan yang jelas.' },
 ];
 
-export const SECTORS = ['Makanan & Minuman', 'Farmasi & Kosmetik', 'Kimia & Plastik', 'Tekstil & Garmen', 'Logam & Manufaktur', 'Utilitas & Energi'];
+export const SECTORS = ['Food & Beverage', 'Pharmaceuticals & Cosmetics', 'Chemicals & Plastics', 'Textiles & Garment', 'Metals & Manufacturing', 'Utilities & Energy'];
 
 export const STEPS = [
-  { w: 'Predict', c: 'text-teal-400', t: 'Know before it breaks', d: 'Skor kritikalitas, anomali energi, alarm, dan tren KPI menunjukkan aset mana yang perlu dicek lebih dulu.' },
-  { w: 'Maintain', c: 'text-blue-400', t: 'Execute with discipline', d: 'Preventive terjadwal, Work Order dengan alur yang jelas, spare parts selalu tersedia, dan teknisi bekerja dari WhatsApp atau web.' },
-  { w: 'Optimize', c: 'text-teal-300', t: 'Learn from every failure', d: 'Root Cause Analysis dan Pareto mengubah kerusakan menjadi perbaikan permanen. Biaya turun, uptime naik.' },
+  { w: 'Predict', c: 'text-teal-400', t: 'Anticipate failures before they happen', d: 'Skor kritikalitas, anomali energi, alarm, dan tren KPI menunjukkan aset mana yang perlu dicek lebih dulu.' },
+  { w: 'Maintain', c: 'text-blue-400', t: 'Execute with precision', d: 'Preventive terjadwal, Work Order dengan alur yang jelas, spare parts selalu tersedia, dan teknisi bekerja dari WhatsApp atau web.' },
+  { w: 'Optimize', c: 'text-teal-300', t: 'Turn every failure into improvement', d: 'Root Cause Analysis dan Pareto mengubah kerusakan menjadi perbaikan permanen. Biaya turun, uptime naik.' },
 ];

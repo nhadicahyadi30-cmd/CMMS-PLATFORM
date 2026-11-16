@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Clients & Partners', description: 'K
 export default function Clients() {
   return (
     <>
-      <PageHero eyebrow="Clients & partners" title={<>Built for maintenance teams who <span className="text-grad">decide with data.</span></>}>
+      <PageHero eyebrow="Clients & partners" title={<>Built for reliability teams that <span className="text-grad">decide with data.</span></>}>
         {CLIENTS.length ? 'Organisasi yang memakai MaintHub agar mesinnya tetap berjalan.' : 'Kami sedang membuka Pilot Partner Program untuk pabrik dengan banyak plant. Anda bekerja langsung dengan tim kami dan ikut menentukan arah produknya.'}
       </PageHero>
 

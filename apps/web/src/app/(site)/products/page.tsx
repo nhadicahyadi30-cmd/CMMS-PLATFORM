@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Products', description: 'Sepuluh mod
 export default function Products() {
   return (
     <>
-      <PageHero eyebrow="Products" title={<>Everything your maintenance team needs, <span className="text-grad">in one platform.</span></>}>
+      <PageHero eyebrow="Products" title={<>The complete toolkit for maintenance teams, <span className="text-grad">in one platform.</span></>}>
         Semua modul memakai data yang sama. Kerusakan yang dicatat di Work Order langsung ikut terhitung di KPI, stok spare parts, dan Root Cause Analysis, tanpa input dua kali.
       </PageHero>
       <section className="px-5 pb-28 sm:px-8">

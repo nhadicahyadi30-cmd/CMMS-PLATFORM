@@ -31,7 +31,7 @@ test('suku cadang: ya/tidak dan desimal', () => {
   assert.deepEqual(r.errors.map((e) => e.row), [3, 4]);
 });
 test('induk diproses sebelum anak walau urutan berkas terbalik', () => {
-  const rows = [{ n: 1, d: { code: 'MTR-1', parent: 'PUMP-1' } }, { n: 2, d: { code: 'PUMP-1', parent: 'LINE-1' } }, { n: 3, d: { code: 'LINE-1' } }];
+  const rows: { n: number; d: { code: string; parent?: string } }[] = [{ n: 1, d: { code: 'MTR-1', parent: 'PUMP-1' } }, { n: 2, d: { code: 'PUMP-1', parent: 'LINE-1' } }, { n: 3, d: { code: 'LINE-1' } }];
   const r = orderAssets(rows, new Set());
   assert.deepEqual(r.order.map((x) => x.d.code), ['LINE-1', 'PUMP-1', 'MTR-1']); assert.equal(r.errors.length, 0);
 });

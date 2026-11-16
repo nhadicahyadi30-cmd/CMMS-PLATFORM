@@ -33,6 +33,7 @@ export const config = {
     pass: process.env.SMTP_PASS ?? '',
     from: process.env.SMTP_FROM ?? '',
   },
+  leadsNotifyTo: process.env.LEADS_NOTIFY_EMAIL ?? '',   // opsional: email pemilik yang diberi tahu saat ada permintaan demo
   reportsScheduler: process.env.REPORTS_SCHEDULER !== 'off',
   maxUploadBytes: 10 * 1024 * 1024,
   wa: {

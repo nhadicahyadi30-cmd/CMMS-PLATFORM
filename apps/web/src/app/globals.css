@@ -40,3 +40,13 @@ html.snap-site { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 .text-grad { background: linear-gradient(100deg, #5a97f5, #12c4b4 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } html.snap-site { scroll-snap-type: none; scroll-behavior: auto; } }
 @keyframes mh-fade { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+@keyframes mh-burst { 0% { r: 8; opacity: .9 } 100% { r: 78; opacity: 0 } }
+.mh-burst { animation: mh-burst 1.1s ease-out forwards; }
+.mh-wave3 { animation-delay: .9s; }
+/* Logo kecil (header/sidebar): sisi kubus terpisah saat disorot */
+.mh-logo .f { transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+.mh-logo:hover .f-top, a:hover .mh-logo .f-top { transform: translateY(-9px); }
+.mh-logo:hover .f-left, a:hover .mh-logo .f-left { transform: translate(-6px, 4px); }
+.mh-logo:hover .f-right, a:hover .mh-logo .f-right { transform: translate(6px, 4px); }
+.mh-logo:hover .mh-wave, a:hover .mh-logo .mh-wave { animation-duration: .9s; }

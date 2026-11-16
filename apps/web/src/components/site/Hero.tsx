@@ -63,7 +63,7 @@ export default function Hero() {
               <span key={w} role="button" tabIndex={0} aria-pressed={active === i} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
                 className={`block w-fit cursor-pointer transition duration-500 ${WORD_CLS[i]} ${active === i ? 'translate-x-2 opacity-100' : 'opacity-40'}`}>{w}</span>))}
           </h1>
-          <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-300">Satu platform untuk Work Order, Preventive Maintenance, Spare Parts, KPI, hingga Root Cause Analysis. Tim lapangan tahu apa yang harus dikerjakan, manajemen melihat kondisi mesin yang sebenarnya.</p>
+          <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-300">One platform for Work Orders, Preventive Maintenance, Spare Parts, KPIs, and Root Cause Analysis. Your field team knows what to fix next, and management sees the true condition of every asset.</p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link href="/contact" className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#07090d] transition hover:bg-teal-300">Request a Demo</Link>
             <Link href="/products" className="rounded-md border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/60 hover:bg-white/5">Explore Products</Link>

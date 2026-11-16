@@ -15,7 +15,7 @@ export default function Home() {
       <section id="statement" className="snap-sec flex min-h-screen items-center px-5 py-28 sm:px-8">
         <div className="mx-auto w-full max-w-6xl">
           <Reveal><h2 className="max-w-4xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.1] tracking-tight">Unplanned downtime is costly. <span className="text-grad">Disciplined maintenance</span> prevents it.</h2></Reveal>
-          <Reveal delay={120}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">Data maintenance sering tersebar di Excel, grup WhatsApp, dan ingatan teknisi senior. MaintHub menyatukannya dalam satu platform, sehingga keputusan diambil dari data, bukan tebakan.</p></Reveal>
+          <Reveal delay={120}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">Maintenance data is often scattered across Excel files, WhatsApp groups, and the memory of senior technicians. MaintHub brings it all into one platform, so decisions are based on data, not guesswork.</p></Reveal>
           <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3">
             {[[10, '', 'modules in one platform'], [500, '+', 'assets per organization (pilot target)'], [30, '+', 'active technicians (pilot target)']].map(([n, s, l], i) => (
               <Reveal key={String(l)} delay={i * 120} className="bg-[#07090d] p-8 sm:p-10">

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Reveal from './Reveal';
 
-export default function CtaBand({ title = 'Ready to see MaintHub in your plant?', text = 'Kami siapkan demo dengan contoh data yang mirip dengan pabrik Anda.' }: { title?: string; text?: string }) {
+export default function CtaBand({ title = 'Ready to see MaintHub in your plant?', text = 'We will prepare a demo with sample data that mirrors your plant.' }: { title?: string; text?: string }) {
   return (
     <section className="snap-sec relative overflow-hidden border-t border-white/10 px-5 py-28 sm:px-8">
       <div className="pointer-events-none absolute inset-x-0 -bottom-40 mx-auto h-80 max-w-3xl rounded-full bg-teal-400/25 blur-[120px]" aria-hidden="true" />

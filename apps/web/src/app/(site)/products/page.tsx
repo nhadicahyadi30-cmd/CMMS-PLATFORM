@@ -4,13 +4,13 @@ import PageHero from '@/components/site/PageHero';
 import CtaBand from '@/components/site/CtaBand';
 import { MODULES } from '@/lib/site-content';
 
-export const metadata: Metadata = { title: 'Products', description: 'Sepuluh modul MaintHub: work order, preventive, aset, sparepart, KPI, RCA, energi, AI, WhatsApp, dan administrasi.' };
+export const metadata: Metadata = { title: 'Products', description: 'The ten MaintHub modules: work orders, preventive maintenance, assets, spare parts, KPIs, RCA, energy, AI, WhatsApp, and administration.' };
 
 export default function Products() {
   return (
     <>
       <PageHero eyebrow="Products" title={<>The complete toolkit for maintenance teams, <span className="text-grad">in one platform.</span></>}>
-        Semua modul memakai data yang sama. Kerusakan yang dicatat di Work Order langsung ikut terhitung di KPI, stok spare parts, dan Root Cause Analysis, tanpa input dua kali.
+        All modules share the same data. A failure logged on a Work Order is instantly reflected in KPIs, spare parts stock, and Root Cause Analysis, with no double entry.
       </PageHero>
       <section className="px-5 pb-28 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">

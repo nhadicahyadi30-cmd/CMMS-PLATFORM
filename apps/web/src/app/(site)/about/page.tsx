@@ -4,28 +4,28 @@ import PageHero from '@/components/site/PageHero';
 import CtaBand from '@/components/site/CtaBand';
 import { LogoMark } from '@/components/Logo';
 
-export const metadata: Metadata = { title: 'About MaintHub', description: 'Apa itu MaintHub, apa yang kami yakini, dan bagaimana platform ini dibangun.' };
+export const metadata: Metadata = { title: 'About MaintHub', description: 'What MaintHub is, what we believe in, and how the platform is built.' };
 
 const VALUES = [
-  ['Field data first', 'Angka KPI berasal dari kejadian nyata di pabrik, bukan input manual yang bisa dipoles.'],
-  ['Rules enforced by the system', 'Alur work order, stok yang tidak bisa minus, dan riwayat yang tidak bisa diubah dijaga langsung oleh database, tidak bergantung pada kebiasaan.'],
-  ['Simple for technicians', 'Teknisi cukup pakai WhatsApp atau satu layar. Bagian yang rumit kami simpan di belakang.'],
-  ['Honest about capabilities', 'Kami jelaskan mana yang sudah teruji dan mana yang belum. Kepercayaan dimulai dari situ.'],
+  ['Field data first', 'KPI figures come from real events on the plant floor, not from manual entries that can be polished.'],
+  ['Rules enforced by the system', 'Work order flow, stock that cannot go negative, and history that cannot be altered are enforced by the database itself, not left to habit.'],
+  ['Simple for technicians', 'Technicians only need WhatsApp or a single screen. We keep the complexity behind the scenes.'],
+  ['Honest about capabilities', 'We state clearly what has been tested and what has not. Trust starts there.'],
 ];
 
 export default function About() {
   return (
     <>
       <PageHero eyebrow="About us" title={<>What is <span className="text-grad">MaintHub?</span></>}>
-        MaintHub adalah platform CMMS (Computerized Maintenance Management System) berbasis web untuk pabrik dengan satu atau banyak plant. Semua urusan maintenance, dari data aset sampai analisis penyebab kerusakan, ada di satu tempat.
+        MaintHub is a web-based CMMS (Computerized Maintenance Management System) for factories with one or many plants. Everything maintenance-related, from asset data to root cause analysis, lives in one place.
       </PageHero>
 
       <section className="px-5 pb-24 sm:px-8">
         <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-2">
           <Reveal>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Our mission</h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-300">Membantu tim perawatan berhenti sekadar memperbaiki yang rusak, dan mulai mencegahnya. Alatnya dipakai teknisi setiap hari, bukan cuma dilihat manajemen sebulan sekali.</p>
-            <p className="mt-4 leading-relaxed text-slate-400">Nama <strong className="font-medium text-slate-200">MaintHub</strong> berarti pusat (<em>hub</em>) tempat semua data perawatan bertemu. Logonya, kubus modul dengan antena sensor, menggambarkan modul yang saling terhubung dan data yang terus mengalir untuk memprediksi masalah.</p>
+            <p className="mt-5 text-lg leading-relaxed text-slate-300">To help maintenance teams move from fixing what breaks to preventing it. The tool is used by technicians every day, not just reviewed by management once a month.</p>
+            <p className="mt-4 leading-relaxed text-slate-400">The name <strong className="font-medium text-slate-200">MaintHub</strong> reflects a central <em>hub</em> where all maintenance data comes together. The logo, a cube of modules topped with a sensor antenna, represents connected modules and data that flows continuously to predict problems.</p>
           </Reveal>
           <Reveal delay={120}><div className="relative flex aspect-square max-w-md items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-transparent"><div className="absolute inset-10 rounded-full bg-teal-400/10 blur-3xl" aria-hidden="true" /><LogoMark size={230} className="mh-float relative" /></div></Reveal>
         </div>
@@ -44,7 +44,7 @@ export default function About() {
         <div className="mx-auto max-w-6xl">
           <Reveal><h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Built on proven technology</h2></Reveal>
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-            {[['PostgreSQL 16', 'Aturan bisnis dan pemisahan data antar organisasi dijaga di level database'], ['NestJS API', 'Validasi ketat, hak akses per modul, dan jejak audit'], ['Next.js', 'Tampilan web yang nyaman dipakai di kantor maupun di lapangan'], ['Docker', 'Bisa dipasang di server sendiri atau cloud pilihan Anda']].map(([t, d], i) => (
+            {[['PostgreSQL 16', 'Business rules and data separation between organizations are enforced at the database level'], ['NestJS API', 'Strict validation, per-module access control, and audit trail'], ['Next.js', 'A web interface that works comfortably in the office and in the field'], ['Docker', 'Deploy on your own servers or the cloud of your choice']].map(([t, d], i) => (
               <Reveal key={t} delay={i * 80} className="bg-[#07090d] p-7"><div className="font-mono text-sm text-blue-400">{t}</div><p className="mt-3 text-sm leading-relaxed text-slate-400">{d}</p></Reveal>))}
           </div>
         </div>

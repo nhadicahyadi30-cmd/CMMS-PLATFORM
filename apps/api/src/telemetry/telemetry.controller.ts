@@ -6,6 +6,7 @@ import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 import { newKey } from './telemetry.rules';
+import { healthScore, pmForecast, predictSensor, worstStatus, SensorStatus } from './predict.rules';
 
 const Lim = z.number().finite().nullish();
 const TagBody = z.object({
@@ -100,6 +101,63 @@ export class TelemetryController {
         ? `select date_bin('${iv}'::interval, ts, timestamptz '2000-01-01') as ts, avg(value) as avg, min(value) as min, max(value) as max, count(*)::int as n from sensor_readings where tag_id = $1 and ts >= now() - make_interval(secs => $2) group by 1 order by 1 limit 5000`
         : `select ts, value as avg, value as min, value as max, 1 as n from sensor_readings where tag_id = $1 and ts >= now() - make_interval(secs => $2) order by ts limit 5000`;
       return (await c.query(sql, [d.tagId, d.hours * 3600])).rows;
+    });
+  }
+
+  /** Prediksi per aset: status sensor, ETA ke batas, anomali, skor kesehatan, perkiraan PM berbasis jam jalan. */
+  @Get('predictions')
+  predictions(@Query() q: unknown, @Req() req: any) {
+    const d = parse(z.object({ hours: z.coerce.number().min(2).max(24 * 14).default(24), assetId: z.string().uuid().optional() }), q);
+    return this.run(req, async (c) => {
+      const now = Date.now();
+      const tags = (await c.query(
+        `select ${TAG_SEL}, a.plant_id as "plantId", r.ts as "lastTs", r.value::float8 as "lastValue"
+           from sensor_tags t join assets a on a.id = t.asset_id
+           left join lateral (select ts, value from sensor_readings where tag_id = t.id order by ts desc limit 1) r on true
+          where t.active ${d.assetId ? 'and t.asset_id = $1' : ''} order by a.code, t.name limit 500`, d.assetId ? [d.assetId] : [])).rows;
+      const ids = tags.map((t: any) => t.id);
+      const pts = new Map<string, { t: number; v: number }[]>();
+      if (ids.length) {
+        const rows = (await c.query(
+          `select tag_id, date_bin('10 minutes', ts, timestamptz '2000-01-01') as ts, avg(value)::float8 as v
+             from sensor_readings where tag_id = any($1::uuid[]) and ts >= now() - make_interval(secs => $2)
+            group by 1, 2 order by 1, 2`, [ids, d.hours * 3600])).rows;
+        for (const r of rows) { const a = pts.get(r.tag_id) ?? []; a.push({ t: new Date(r.ts).getTime(), v: r.v }); pts.set(r.tag_id, a); }
+      }
+      const pm = (await c.query(
+        `select p.id, p.asset_id as "assetId", p.name, p.interval_meter::float8 as interval, p.last_meter::float8 as "lastMeter",
+                cur.value::float8 as current, rt.rate_per_day::float8 as "ratePerDay"
+           from pm_plans p
+           left join lateral (select value from meter_readings where meter_id = p.meter_id order by read_at desc limit 1) cur on true
+           left join lateral (select case when extract(epoch from (max(read_at) - min(read_at))) >= 3600
+                                          then (max(value) - min(value)) / (extract(epoch from (max(read_at) - min(read_at))) / 86400) end as rate_per_day
+                                from meter_readings where meter_id = p.meter_id and read_at >= now() - interval '7 days') rt on true
+          where p.active and p.trigger_type = 'meter' ${d.assetId ? 'and p.asset_id = $1' : ''}`, d.assetId ? [d.assetId] : [])).rows;
+      const hrs = (await c.query(
+        `select m.asset_id as "assetId", cur.value::float8 as value
+           from asset_meters m join lateral (select value from meter_readings where meter_id = m.id order by read_at desc limit 1) cur on true
+          where m.name = 'running_hours' ${d.assetId ? 'and m.asset_id = $1' : ''}`, d.assetId ? [d.assetId] : [])).rows;
+
+      const byAsset = new Map<string, any>();
+      const slot = (t: any) => { let a = byAsset.get(t.assetId); if (!a) { a = { assetId: t.assetId, code: t.assetCode, name: t.assetName, plantId: t.plantId, sensors: [], pm: [], runningHours: null }; byAsset.set(t.assetId, a); } return a; };
+      for (const t of tags) {
+        const lim = { warnHigh: t.warnHigh, critHigh: t.critHigh, warnLow: t.warnLow, critLow: t.critLow };
+        const pr = predictSensor({ kind: t.kind, limits: lim, points: pts.get(t.id) ?? [], lastTs: t.lastTs ? new Date(t.lastTs).getTime() : null, lastValue: t.lastValue, now });
+        slot(t).sensors.push({ tagId: t.id, tag: t.tag, name: t.name, unit: t.unit, kind: t.kind, lastValue: t.lastValue, lastTs: t.lastTs, ...lim, ...pr });
+      }
+      for (const h of hrs) { const a = byAsset.get(h.assetId); if (a) a.runningHours = h.value; }
+      for (const p of pm) {
+        const a = byAsset.get(p.assetId); if (!a) continue;
+        a.pm.push({ planId: p.id, name: p.name, interval: p.interval, current: p.current, ...pmForecast(p.lastMeter, p.interval, p.current, p.ratePerDay) });
+      }
+      const assets = [...byAsset.values()].map((a) => {
+        const sts: SensorStatus[] = a.sensors.map((s: any) => s.status);
+        const overdue = a.pm.some((x: any) => x.state === 'overdue'), soon = a.pm.some((x: any) => x.state === 'soon');
+        return { ...a, status: worstStatus(sts), health: healthScore(sts, overdue, soon) };
+      }).sort((x, y) => x.health - y.health);
+      const summary = { assets: assets.length, critical: 0, risk: 0, watch: 0, offline: 0, ok: 0, nodata: 0, pmOverdue: 0, pmSoon: 0 } as Record<string, number>;
+      for (const a of assets) { summary[a.status]++; summary.pmOverdue += a.pm.filter((x: any) => x.state === 'overdue').length; summary.pmSoon += a.pm.filter((x: any) => x.state === 'soon').length; }
+      return { generatedAt: new Date(now).toISOString(), windowHours: d.hours, summary, assets };
     });
   }
 }

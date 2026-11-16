@@ -36,7 +36,7 @@ export class IngestController {
   async readings(@Body() b: unknown, @Req() req: any) {
     const k = await this.authenticate(req);
     const { readings } = parse(IngestDto, b) as { readings: Reading[] };
-    const out = { received: readings.length, accepted: 0, duplicates: 0, alarmsRaised: 0, alarmsEscalated: 0, errors: [] as { index: number; error: string }[] };
+    const out = { serverTime: new Date().toISOString(), received: readings.length, accepted: 0, duplicates: 0, alarmsRaised: 0, alarmsEscalated: 0, errors: [] as { index: number; error: string }[] };
     await this.db.tx(this.ctx(k), async (c) => {
       const assets = new Map<string, any>(); const tags = new Map<string, any>();
       for (let i = 0; i < readings.length; i++) {

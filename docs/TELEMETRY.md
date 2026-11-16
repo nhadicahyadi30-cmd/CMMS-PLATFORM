@@ -43,11 +43,13 @@ POST /api/ingest/readings
 
 Balasan (HTTP 200 jika kunci valid, walau sebagian item ditolak):
 ```json
-{ "received": 2, "accepted": 2, "duplicates": 0, "alarmsRaised": 0, "alarmsEscalated": 0, "errors": [] }
+{ "serverTime": "2026-11-16T14:00:02.000Z", "received": 2, "accepted": 2, "duplicates": 0, "alarmsRaised": 0, "alarmsEscalated": 0, "errors": [] }
 ```
 `errors` berisi `{ "index": n, "error": "..." }` per item yang ditolak (aset/tag tidak dikenal, nilai di luar rentang wajar, dll.). Item lain tetap tersimpan.
 
 Kode status: `401` kunci salah/dicabut · `400` format JSON salah · `429` terlalu sering (maks 240 permintaan/menit per kunci).
+
+`serverTime` = jam server (UTC), berguna bagi perangkat tanpa NTP.
 
 ## Contoh flow Node-RED
 Impor lewat menu *Import → Clipboard*, lalu ubah URL, kunci, kode aset, dan tag. Node *inject* di sini hanya contoh; ganti dengan node pembaca PLC/Modbus/OPC UA/MQTT Anda.

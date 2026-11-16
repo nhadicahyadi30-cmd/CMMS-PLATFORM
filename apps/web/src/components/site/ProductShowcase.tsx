@@ -44,7 +44,7 @@ export default function ProductShowcase() {
   const [i, setI] = useState(0); const m = MODULES[i];
   return (
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-      <div role="tablist" aria-label="Modul" className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+      <div role="tablist" aria-label="Modules" className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
         {MODULES.map((x, k) => (
           <button key={x.id} role="tab" aria-selected={k === i} onClick={() => setI(k)} onMouseEnter={() => window.matchMedia('(hover: hover)').matches && setI(k)}
             className={`group flex shrink-0 items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition ${k === i ? 'border-teal-400/60 bg-teal-400/10 text-white' : 'border-white/10 text-slate-400 hover:border-white/30 hover:text-white'}`}>
@@ -58,7 +58,7 @@ export default function ProductShowcase() {
           <p className="mt-4 leading-relaxed text-slate-300">{m.desc}</p>
           <ul className="mt-6 space-y-2.5 text-sm text-slate-300">{m.bullets.map((b) => <li key={b} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-400" />{b}</li>)}</ul>
         </div>
-        <div className="flex min-h-[250px] flex-col justify-center rounded-xl border border-white/10 bg-[#0a0e14] p-5"><Viz id={m.id} /><p className="mt-4 text-[0.65rem] uppercase tracking-[0.16em] text-slate-600">Ilustrasi tampilan</p></div>
+        <div className="flex min-h-[250px] flex-col justify-center rounded-xl border border-white/10 bg-[#0a0e14] p-5"><Viz id={m.id} /><p className="mt-4 text-[0.65rem] uppercase tracking-[0.16em] text-slate-600">Illustrative preview</p></div>
       </div>
     </div>
   );

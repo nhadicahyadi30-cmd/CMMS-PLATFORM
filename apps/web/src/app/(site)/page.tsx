@@ -14,10 +14,10 @@ export default function Home() {
 
       <section id="statement" className="snap-sec flex min-h-screen items-center px-5 py-28 sm:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <Reveal><h2 className="max-w-4xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.1] tracking-tight">Mesin berhenti itu mahal. <span className="text-grad">Perawatan yang rapi</span> bisa mencegahnya.</h2></Reveal>
-          <Reveal delay={120}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">Selama ini data perawatan sering tersebar di Excel, grup WhatsApp, dan ingatan teknisi senior. MaintHub mengumpulkannya di satu tempat, supaya keputusan diambil dari data, bukan dari tebakan.</p></Reveal>
+          <Reveal><h2 className="max-w-4xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.1] tracking-tight">Downtime itu mahal. <span className="text-grad">Maintenance yang rapi</span> bisa mencegahnya.</h2></Reveal>
+          <Reveal delay={120}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">Data maintenance sering tersebar di Excel, grup WhatsApp, dan ingatan teknisi senior. MaintHub menyatukannya dalam satu platform, sehingga keputusan diambil dari data, bukan tebakan.</p></Reveal>
           <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3">
-            {[[10, '', 'modul dalam satu aplikasi'], [500, '+', 'aset per organisasi (target pilot)'], [30, '+', 'teknisi aktif (target pilot)']].map(([n, s, l], i) => (
+            {[[10, '', 'modules in one platform'], [500, '+', 'assets per organization (pilot target)'], [30, '+', 'active technicians (pilot target)']].map(([n, s, l], i) => (
               <Reveal key={String(l)} delay={i * 120} className="bg-[#07090d] p-8 sm:p-10">
                 <div className="text-6xl font-semibold tracking-tight text-white"><Counter to={n as number} suffix={s as string} /></div>
                 <p className="mt-3 text-sm text-slate-400">{l}</p>
@@ -28,7 +28,7 @@ export default function Home() {
 
       <section className="snap-sec relative px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <Reveal><p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">Cara kerja</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Tiga langkah yang terus berulang.</h2></Reveal>
+          <Reveal><p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">How it works</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Three steps. One continuous cycle.</h2></Reveal>
           <div className="mt-16 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <Reveal key={s.w} delay={i * 140}>
@@ -46,14 +46,14 @@ export default function Home() {
 
       <section className="snap-sec border-y border-white/5 bg-[#090c11] px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <Reveal><p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">Produk</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Sepuluh modul, satu data, tanpa input ganda.</h2></Reveal>
+          <Reveal><p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">Products</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Ten modules. One source of truth.</h2></Reveal>
           <Reveal delay={120} className="mt-14"><ProductShowcase /></Reveal>
-          <Reveal delay={200}><div className="mt-10 text-center"><Link href="/products" className="text-sm font-medium text-teal-300 underline-offset-4 hover:underline">Lihat semua modul →</Link></div></Reveal>
+          <Reveal delay={200}><div className="mt-10 text-center"><Link href="/products" className="text-sm font-medium text-teal-300 underline-offset-4 hover:underline">Explore all modules →</Link></div></Reveal>
         </div>
       </section>
 
-      <section className="snap-sec overflow-hidden px-5 py-24 sm:px-8" aria-label="Sektor industri">
-        <Reveal><p className="mb-10 text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Cocok untuk industri manufaktur dan proses</p></Reveal>
+      <section className="snap-sec overflow-hidden px-5 py-24 sm:px-8" aria-label="Industries">
+        <Reveal><p className="mb-10 text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Built for manufacturing & process industries</p></Reveal>
         <div className="relative mx-auto max-w-7xl overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
           <div className="mh-marquee flex w-max gap-14 whitespace-nowrap text-3xl font-semibold tracking-tight text-slate-700 sm:text-5xl">{loop.map((s, i) => <span key={i}>{s}<span className="ml-14 text-teal-400/60">◆</span></span>)}</div>
         </div>

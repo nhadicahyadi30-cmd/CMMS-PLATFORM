@@ -5,7 +5,7 @@ import { login } from '@/lib/api';
 import Link from 'next/link';
 import Logo, { TAGLINE_WORDS } from '@/components/Logo';
 
-const POINTS = ['Work order, preventive, dan sparepart dalam satu platform', 'KPI keandalan yang dihitung langsung dari data lapangan', 'Asisten AI yang menjawab dari manual dan riwayat perbaikan Anda'];
+const POINTS = ['Work Order, Preventive, dan Spare Parts dalam satu platform', 'KPI reliability dihitung langsung dari data lapangan', 'AI Assistant yang menjawab dari manual dan riwayat perbaikan Anda'];
 
 export default function Login() {
   const r = useRouter();
@@ -29,17 +29,17 @@ export default function Login() {
         </section>
         <form onSubmit={submit} className="mx-auto w-full max-w-sm space-y-4 rounded-2xl border border-white/10 bg-white/[0.07] p-7 shadow-2xl backdrop-blur-xl">
           <div className="lg:hidden"><Link href="/"><Logo size={44} dark /></Link></div>
-          <div><h2 className="text-lg font-semibold text-white">Masuk ke MaintHub</h2><p className="text-sm text-slate-400">Gunakan akun yang diberikan administrator.</p></div>
-          {[['org', 'Organisasi', 'organization', 'text'], ['username', 'Username', 'username', 'text'], ['password', 'Password', 'current-password', 'password']].map(([n, l, a, t]) => (
+          <div><h2 className="text-lg font-semibold text-white">Sign in to MaintHub</h2><p className="text-sm text-slate-400">Gunakan akun yang diberikan administrator.</p></div>
+          {[['org', 'Organization', 'organization', 'text'], ['username', 'Username', 'username', 'text'], ['password', 'Password', 'current-password', 'password']].map(([n, l, a, t]) => (
             <label key={n} className="block text-sm text-slate-300">{l}
               <input name={n} type={t} required autoComplete={a} className="mt-1 w-full rounded-lg border border-white/15 bg-ink-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" />
             </label>
           ))}
           {err && <p role="alert" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</p>}
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-teal-400 py-2.5 text-sm font-semibold text-ink-950 shadow-glow transition hover:brightness-110 disabled:opacity-60" disabled={busy}>{busy ? 'Masuk…' : 'Masuk'}</button>
+          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-teal-400 py-2.5 text-sm font-semibold text-ink-950 shadow-glow transition hover:brightness-110 disabled:opacity-60" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</button>
         </form>
       </div>
-      <Link href="/" className="absolute left-5 top-5 z-10 text-sm text-slate-400 hover:text-white">← Beranda</Link>
+      <Link href="/" className="absolute left-5 top-5 z-10 text-sm text-slate-400 hover:text-white">← Home</Link>
     </main>
   );
 }

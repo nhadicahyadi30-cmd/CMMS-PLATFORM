@@ -9,19 +9,19 @@ export default function ContactForm({ email }: { email: string }) {
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const f = new FormData(e.currentTarget);
     const body = [`Nama: ${f.get('name')}`, `Perusahaan: ${f.get('company')}`, `Telepon: ${f.get('phone') || '-'}`, `Jumlah plant / aset: ${f.get('size') || '-'}`, '', String(f.get('msg') || '')].join('\n');
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent('Permintaan demo MaintHub — ' + f.get('company'))}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent('MaintHub demo request — ' + f.get('company'))}&body=${encodeURIComponent(body)}`;
     setSent(true);
   }
   return (
     <form onSubmit={submit} className="space-y-5 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-transparent p-7 sm:p-9">
       <div className="grid gap-5 sm:grid-cols-2">
-        <label className="block text-sm text-slate-300">Nama<input name="name" required className={F} autoComplete="name" /></label>
-        <label className="block text-sm text-slate-300">Perusahaan<input name="company" required className={F} autoComplete="organization" /></label>
-        <label className="block text-sm text-slate-300">Telepon / WhatsApp<input name="phone" type="tel" className={F} autoComplete="tel" /></label>
-        <label className="block text-sm text-slate-300">Jumlah plant & perkiraan aset<input name="size" className={F} placeholder="mis. 3 plant, ±800 aset" /></label>
+        <label className="block text-sm text-slate-300">Name<input name="name" required className={F} autoComplete="name" /></label>
+        <label className="block text-sm text-slate-300">Company<input name="company" required className={F} autoComplete="organization" /></label>
+        <label className="block text-sm text-slate-300">Phone / WhatsApp<input name="phone" type="tel" className={F} autoComplete="tel" /></label>
+        <label className="block text-sm text-slate-300">Plants & estimated assets<input name="size" className={F} placeholder="mis. 3 plant, ±800 aset" /></label>
       </div>
-      <label className="block text-sm text-slate-300">Apa yang ingin Anda perbaiki dari perawatan saat ini?<textarea name="msg" rows={5} className={F} /></label>
-      <button className="w-full rounded-md bg-white py-3 text-sm font-semibold text-[#07090d] transition hover:bg-teal-300">Kirim permintaan demo</button>
+      <label className="block text-sm text-slate-300">What would you like to improve in your maintenance today?<textarea name="msg" rows={5} className={F} /></label>
+      <button className="w-full rounded-md bg-white py-3 text-sm font-semibold text-[#07090d] transition hover:bg-teal-300">Send demo request</button>
       {sent && <p role="status" className="text-sm text-teal-300">Aplikasi email Anda terbuka dengan pesan yang sudah terisi. Kalau tidak terbuka, kirim langsung ke {email}.</p>}
     </form>
   );

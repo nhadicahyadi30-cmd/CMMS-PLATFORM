@@ -30,3 +30,5 @@ Selesai di kode: modul 1–9 dan fondasi modul 10 (multi-plant, pengguna, RBAC).
 Backend/frontend dikompilasi dan di-build oleh CI, tetapi belum pernah dijalankan end-to-end (tanpa Docker/npm di lingkungan pembuatan); logika bisnis yang ada di SQL diuji pada Postgres nyata.
 Asisten AI: memberi saran saja (tidak punya aksi), jawaban selalu dengan sumber, batas pemakaian per pengguna per jam, teks dari database dinetralkan sebelum masuk prompt. Basis pengetahuan berlaku untuk seluruh organisasi, bukan per plant.
 Target KPI (95/90/90) masih nilai bawaan di kode, belum menjadi pengaturan organisasi.
+
+Penyimpanan objek: MinIO resmi berhenti menerbitkan image (Docker Hub/Quay) sejak akhir 2025, sehingga compose memakai `pgsty/minio` (fork komunitas, kompatibel) untuk dev/pilot. Aplikasi hanya butuh API S3 (`S3_ENDPOINT`), jadi untuk produksi bisa diganti S3 terkelola (AWS S3, R2, dsb.) cukup dengan mengubah `.env`.

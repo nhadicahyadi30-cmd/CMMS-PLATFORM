@@ -28,7 +28,7 @@ services:
     entrypoint: ["bash", "/migrate.sh"]
     networks: [internal]
   minio:
-    image: quay.io/minio/minio
+    image: pgsty/minio   # fork komunitas MinIO (image resmi minio/minio sudah dihentikan); untuk produksi, pertimbangkan S3 terkelola
     restart: unless-stopped
     command: server /data
     environment:

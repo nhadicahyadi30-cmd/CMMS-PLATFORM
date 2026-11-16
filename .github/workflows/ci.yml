@@ -21,6 +21,7 @@ jobs:
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/rca.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/energy.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/ai.sql
+      - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/reports.sql
   api:
     runs-on: ubuntu-latest
     steps:

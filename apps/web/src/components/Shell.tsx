@@ -15,6 +15,7 @@ const I: Record<string, Icon> = {
   ai: 'M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Zm7 11 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z',
   inv: 'M3 7l9-4 9 4-9 4-9-4Zm0 5 9 4 9-4M3 17l9 4 9-4',
   kpi: 'M4 20V10m6 10V4m6 16v-7m4 7H2',
+  rep: 'M7 3h8l4 4v14H7V3Zm8 0v4h4M10 12h6M10 16h6M10 8h2',
   imp: 'M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
@@ -24,6 +25,7 @@ const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group
   { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory', icon: 'inv', group: 'Operasi' },
   { m: 9, href: '/kpi', label: 'Dashboard KPI', icon: 'kpi', group: 'Analitik' },
+  { m: 9, href: '/reports', label: 'Reports', icon: 'rep', group: 'Analitik' },
   { m: 8, href: '/rca', label: 'RCA & Failure', icon: 'rca', group: 'Analitik' },
   { m: 7, href: '/energy', label: 'Electrical & Utility', icon: 'energy', group: 'Analitik' },
   { m: 5, href: '/ai', label: 'AI Assistant', icon: 'ai', group: 'Analitik' },

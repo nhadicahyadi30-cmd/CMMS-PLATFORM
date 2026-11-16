@@ -17,6 +17,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Modul 9 Dashboard KPI: availability, MTTR, MTBF, kepatuhan PM, SLA, backlog, Pareto, biaya, ekspor CSV | 🟡 rumus DB teruji dengan data hitungan manual; API/UI baru dikompilasi CI |
 | Modul 5 AI Assistant: basis pengetahuan (pencarian teks penuh), tanya-jawab Claude dengan sumber, alarm + diagnosis awal + buat WO | 🟡 pencarian & alarm teruji di DB; pemanggilan Claude API belum diuji dengan kunci sungguhan. Tanpa `ANTHROPIC_API_KEY` otomatis jatuh ke mode pencarian saja |
 | Modul 7 Electrical & Utility: energi per lini/utilitas (harian/shift/rentang/PO), tarif, kWh/ton, model beban dasar, anomali, impor CSV | 🟡 rumus & aturan bentrok teruji dengan data hitungan manual |
+| Laporan otomatis harian/mingguan/bulanan/tahunan: unduh PDF, kirim email, jadwal, riwayat (`docs/REPORTS.md`) | 🟡 periode & jadwal teruji di DB; PDF teruji dan diperiksa visual; **pengiriman email belum diuji dengan SMTP sungguhan** |
 | Impor massal data master (aset, teknisi, suku cadang): periksa dulu, semua-atau-tidak-sama-sekali, laporan galat per baris | 🟡 logika validasi teruji; endpoint & UI dikompilasi CI |
 | Modul 8 RCA & Failure: siklus PDCA bergerbang, 5 Why, fishbone 6M, tindakan terverifikasi Supervisor, FMEA (RPN), Pareto penyebab | 🟡 gerbang tahap & RPN teruji di DB |
 | Lampiran foto/PDF ke S3 (web + WhatsApp), bucket privat | 🟡 kode ada, belum diuji dengan S3/MinIO sungguhan |

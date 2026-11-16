@@ -56,3 +56,12 @@ export async function downloadFile(path: string, retry = true): Promise<void> {
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** Unduh berkas (mis. PDF) dari endpoint POST yang memakai token akses. */
+export async function apiDownload(path: string, body: unknown, retry = true): Promise<{ blob: Blob; filename: string }> {
+  const r = await fetch(`/api${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
+  if (r.status === 401 && retry && (await bootstrap())) return apiDownload(path, body, false);
+  if (!r.ok) { const d = await r.json().catch(() => ({})); throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Gagal mengunduh', d); }
+  const cd = r.headers.get('content-disposition') ?? ''; const m = /filename="?([^";]+)"?/.exec(cd);
+  return { blob: await r.blob(), filename: m?.[1] ?? 'laporan.pdf' };
+}

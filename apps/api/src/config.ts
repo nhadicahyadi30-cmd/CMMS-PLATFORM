@@ -25,6 +25,15 @@ export const config = {
     perHour: Number(process.env.AI_MAX_PER_HOUR) > 0 ? Number(process.env.AI_MAX_PER_HOUR) : 60,
     timeoutMs: 30_000,
   },
+  smtp: {
+    host: process.env.SMTP_HOST ?? '',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',            // true = TLS langsung (port 465); false = STARTTLS (587)
+    user: process.env.SMTP_USER ?? '',
+    pass: process.env.SMTP_PASS ?? '',
+    from: process.env.SMTP_FROM ?? '',
+  },
+  reportsScheduler: process.env.REPORTS_SCHEDULER !== 'off',
   maxUploadBytes: 10 * 1024 * 1024,
   wa: {
     phoneId: process.env.WA_PHONE_NUMBER_ID ?? '',

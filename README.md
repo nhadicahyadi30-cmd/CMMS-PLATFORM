@@ -12,6 +12,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Skema DB (PostgreSQL 16, RLS, trigger alur WO) | ✅ selesai, lolos uji (`db/tests`) |
 | Infrastruktur (Docker Compose, Nginx, backup, CI) | ✅ sintaks tervalidasi, belum dijalankan end-to-end |
 | Backup otomatis & penyimpanan permintaan demo website | ✅ diuji (skrip backup, tabel leads); lihat docs/OPERASIONAL.md |
+| Telemetri mesin: API ingest untuk Node-RED, batas alarm, running hour → meter PM | ✅ diuji di level database dan aturan; belum dengan perangkat nyata; lihat docs/TELEMETRY.md |
 | API NestJS dan Web Next.js (semua modul) | 🟡 lolos kompilasi + build di CI; **belum pernah dijalankan end-to-end** dan belum dilihat di browser sungguhan |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
 | Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |

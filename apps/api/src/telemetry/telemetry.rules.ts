@@ -46,7 +46,8 @@ export function parseTs(v: string | number | undefined, now = Date.now()): Date 
 }
 
 // ---------- Ambang batas ----------
-export interface Limits { warnHigh?: number | null; critHigh?: number | null; warnLow?: number | null; critLow?: number | null }
+type Lim = number | string | null | undefined;
+export interface Limits { warnHigh?: Lim; critHigh?: Lim; warnLow?: Lim; critLow?: Lim }
 export type Severity = 'warning' | 'critical';
 export const num = (x: unknown): number | null => (x === null || x === undefined || x === '' ? null : Number(x));
 export function breach(l: Limits, v: number): { sev: Severity; side: 'high' | 'low'; limit: number } | null {

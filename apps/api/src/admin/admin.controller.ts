@@ -5,6 +5,8 @@ import { PoolClient } from 'pg';
 import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
+import { normalizePhone } from '../common/phone';
+export { normalizePhone };
 
 const ROLE = z.enum(['admin', 'supervisor', 'planner', 'technician']);
 const PASSWORD = z.string().min(10, 'Password minimal 10 karakter').max(128);
@@ -19,14 +21,6 @@ const UserPatch = z.object({
 });
 const PlantCreate = z.object({ code: z.string().regex(/^[A-Za-z0-9-]{1,10}$/, 'Kode plant 1–10 huruf/angka'), name: z.string().trim().min(2).max(120), address: z.string().max(300).optional() });
 
-/** 08xxxxxxxx / 62xxxxxxxx / +62xxxxxxxx -> format E.164 (+62...). */
-export function normalizePhone(raw: string): string {
-  const d = raw.replace(/[\s().-]/g, '');
-  if (d.startsWith('+')) return d;
-  if (d.startsWith('0')) return '+62' + d.slice(1);
-  if (d.startsWith('62')) return '+' + d;
-  return '+' + d;
-}
 const Phone = z.string().transform(normalizePhone).refine((v) => /^\+[1-9][0-9]{7,14}$/.test(v), 'Nomor telepon tidak valid');
 const TechCreate = z.object({
   plantId: z.string().uuid(), code: z.string().regex(/^[A-Za-z0-9-]{1,20}$/), fullName: z.string().trim().min(2).max(120),

@@ -1,7 +1,8 @@
-/** Parser CSV sederhana: pembatas koma atau titik koma, kutip ganda, baris kosong diabaikan. */
+/** Parser CSV sederhana: pembatas koma, titik koma, atau tab (tempel dari Excel), kutip ganda, baris kosong diabaikan. */
 export function parseCsv(text: string): string[][] {
   const t = text.replace(/^﻿/, ''); const first = t.split(/\r?\n/, 1)[0] ?? '';
-  const delim = (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? ';' : ',';
+  const cnt = (ch: string) => first.split(ch).length - 1;
+  const delim = cnt('\t') > 0 && cnt('\t') >= Math.max(cnt(';'), cnt(',')) ? '\t' : cnt(';') > cnt(',') ? ';' : ',';
   const rows: string[][] = []; let row: string[] = []; let cur = ''; let q = false;
   for (let i = 0; i < t.length; i++) {
     const ch = t[i];

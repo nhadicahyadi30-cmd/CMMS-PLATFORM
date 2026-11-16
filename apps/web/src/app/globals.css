@@ -1,6 +1,19 @@
 @tailwind base; @tailwind components; @tailwind utilities;
-body { @apply bg-slate-50 text-slate-900; }
-.btn { @apply rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50; }
-.btn-ghost { @apply rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50; }
-.input { @apply w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm; }
-.card { @apply rounded-lg border border-slate-200 bg-white p-4; }
+
+:root { color-scheme: light; }
+html { -webkit-font-smoothing: antialiased; }
+body { @apply bg-slate-100 font-sans text-slate-900; background-image: radial-gradient(1200px 500px at 85% -10%, rgba(47,124,240,.07), transparent 60%); background-attachment: fixed; }
+h1 { @apply tracking-tight; }
+:focus-visible { @apply outline-none ring-2 ring-blue-500 ring-offset-1; }
+
+.btn { @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition hover:from-blue-600 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50; }
+.btn-ghost { @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50; }
+.input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/25; }
+.card { @apply rounded-xl border border-slate-200/80 bg-white p-4 shadow-card; }
+table { @apply w-full; }
+th { @apply text-xs font-medium uppercase tracking-wide text-slate-500; }
+
+/* Latar login: kisi halus + cahaya, tanpa gambar eksternal */
+.auth-bg { background: radial-gradient(900px 500px at 15% 10%, rgba(47,124,240,.35), transparent 60%), radial-gradient(700px 480px at 90% 90%, rgba(24,209,196,.25), transparent 60%), #070d1a; }
+.auth-grid { background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

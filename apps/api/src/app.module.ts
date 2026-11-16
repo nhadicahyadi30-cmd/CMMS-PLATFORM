@@ -18,6 +18,7 @@ import { RcaController, FailureModesController } from './rca/rca.controller';
 import { EnergyController } from './energy/energy.controller';
 import { AiController, AlarmsController } from './ai/ai.controller';
 import { AiService } from './ai/ai.service';
+import { ImportController } from './import/import.controller';
 import { StorageService } from './storage/storage.service';
 import { AttachmentsService } from './storage/attachments.service';
 import { AttachmentsController } from './storage/attachments.controller';
@@ -25,7 +26,7 @@ import { WhatsappProcessor } from './whatsapp/whatsapp.processor';
 import { WhatsappService } from './whatsapp/whatsapp.service';
 
 @Module({
-  controllers: [AuthController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
+  controllers: [AuthController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, ImportController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AiService, AuthService, WhatsappService, WhatsappProcessor, StorageService, AttachmentsService],
 })
 export class AppModule {}

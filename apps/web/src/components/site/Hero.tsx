@@ -37,11 +37,11 @@ export default function Hero() {
 
       <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-5 sm:px-8 lg:grid-cols-[1.05fr_1fr]">
         <div ref={copy} className="will-change-transform">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs uppercase tracking-[0.18em] text-slate-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-400" />Platform CMMS untuk manufaktur</p>
+          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs uppercase tracking-[0.18em] text-slate-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-400" />Aplikasi CMMS untuk pabrik</p>
           <h1 className="text-[clamp(2.8rem,8vw,6.4rem)] font-semibold leading-[1.02] tracking-tight">
             {TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? 'text-stone-100' : i === 1 ? 'text-blue-400' : 'text-grad'}`}>{w}</span>)}
           </h1>
-          <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-300">Satu platform untuk work order, preventive, sparepart, KPI, RCA, energi, dan asisten AI. Dibangun agar pabrik Anda berhenti memadamkan api dan mulai memprediksi.</p>
+          <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-300">Satu aplikasi untuk mengurus work order, jadwal perawatan, sparepart, laporan KPI, sampai analisis penyebab kerusakan. Tim Anda tahu apa yang harus dikerjakan, dan manajemen tahu kondisi mesin yang sebenarnya.</p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link href="/contact" className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#07090d] transition hover:bg-teal-300">Minta Demo</Link>
             <Link href="/products" className="rounded-md border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/60 hover:bg-white/5">Lihat Produk</Link>

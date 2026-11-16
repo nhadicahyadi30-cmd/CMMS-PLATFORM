@@ -9,8 +9,8 @@ export const metadata: Metadata = { title: 'Produk', description: 'Sepuluh modul
 export default function Products() {
   return (
     <>
-      <PageHero eyebrow="Produk" title={<>Semua yang dibutuhkan tim perawatan, <span className="text-grad">dalam satu platform.</span></>}>
-        Setiap modul berbagi data yang sama: kerusakan di work order langsung memengaruhi KPI, stok suku cadang, dan analisis akar masalah — tanpa input ganda.
+      <PageHero eyebrow="Produk" title={<>Semua kebutuhan tim perawatan, <span className="text-grad">dalam satu aplikasi.</span></>}>
+        Semua modul memakai data yang sama. Kerusakan yang dicatat di work order langsung ikut terhitung di KPI, stok sparepart, dan analisis akar masalah, tanpa perlu input dua kali.
       </PageHero>
       <section className="px-5 pb-28 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">

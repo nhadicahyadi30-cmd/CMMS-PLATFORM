@@ -9,8 +9,8 @@ export const metadata: Metadata = { title: 'Layanan', description: 'Implementasi
 export default function Services() {
   return (
     <>
-      <PageHero eyebrow="Layanan" title={<>Perangkat lunak saja tidak cukup. <span className="text-grad">Kami menemani sampai berjalan.</span></>}>
-        CMMS berhasil ketika dipakai setiap hari oleh teknisi, bukan ketika diinstal. Layanan kami fokus ke sana.
+      <PageHero eyebrow="Layanan" title={<>Aplikasinya baru setengah cerita. <span className="text-grad">Kami bantu sampai tim Anda terbiasa.</span></>}>
+        CMMS berhasil kalau dipakai teknisi setiap hari, bukan sekadar terpasang. Layanan kami fokus ke situ.
       </PageHero>
       <section className="px-5 pb-24 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 md:grid-cols-2 lg:grid-cols-3">
@@ -24,14 +24,14 @@ export default function Services() {
       </section>
       <section className="px-5 pb-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <Reveal><h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Alur implementasi</h2></Reveal>
+          <Reveal><h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Tahapan implementasi</h2></Reveal>
           <div className="mt-10 grid gap-5 md:grid-cols-4">
-            {[['Penemuan', 'Memetakan plant, peran, dan proses perawatan yang ada.'], ['Penyiapan', 'Organisasi, pengguna, dan data master diimpor dan divalidasi.'], ['Pilot', 'Satu plant atau lini berjalan penuh bersama tim.'], ['Perluasan', 'Plant lain bergabung dengan pola yang sudah terbukti.']].map(([t, d], i) => (
+            {[['Kenalan', 'Kami pelajari plant, peran, dan cara kerja perawatan Anda saat ini.'], ['Persiapan', 'Akun, peran, dan data master disiapkan lalu diperiksa.'], ['Pilot', 'Satu plant atau lini dijalankan penuh bersama tim.'], ['Perluasan', 'Plant lain menyusul dengan pola yang sudah terbukti.']].map(([t, d], i) => (
               <Reveal key={t} delay={i * 100}><div className="relative h-full rounded-xl border border-white/10 p-6"><span className="text-sm text-slate-600">Tahap {i + 1}</span><h3 className="mt-3 text-lg font-semibold">{t}</h3><p className="mt-2 text-sm leading-relaxed text-slate-400">{d}</p></div></Reveal>))}
           </div>
         </div>
       </section>
-      <CtaBand title="Mulai dengan satu plant." text="Ceritakan kondisi perawatan di pabrik Anda; kami usulkan rencana pilot yang realistis." />
+      <CtaBand title="Mulai dari satu plant." text="Ceritakan kondisi perawatan di pabrik Anda. Kami usulkan rencana pilot yang masuk akal." />
     </>
   );
 }

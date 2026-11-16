@@ -20,9 +20,9 @@ export default function ContactForm({ email }: { email: string }) {
         <label className="block text-sm text-slate-300">Telepon / WhatsApp<input name="phone" type="tel" className={F} autoComplete="tel" /></label>
         <label className="block text-sm text-slate-300">Jumlah plant & perkiraan aset<input name="size" className={F} placeholder="mis. 3 plant, ±800 aset" /></label>
       </div>
-      <label className="block text-sm text-slate-300">Apa tantangan perawatan Anda?<textarea name="msg" rows={5} className={F} /></label>
+      <label className="block text-sm text-slate-300">Apa yang ingin Anda perbaiki dari perawatan saat ini?<textarea name="msg" rows={5} className={F} /></label>
       <button className="w-full rounded-md bg-white py-3 text-sm font-semibold text-[#07090d] transition hover:bg-teal-300">Kirim permintaan demo</button>
-      {sent && <p role="status" className="text-sm text-teal-300">Aplikasi email Anda dibuka dengan pesan siap kirim. Jika tidak terbuka, kirim langsung ke {email}.</p>}
+      {sent && <p role="status" className="text-sm text-teal-300">Aplikasi email Anda terbuka dengan pesan yang sudah terisi. Kalau tidak terbuka, kirim langsung ke {email}.</p>}
     </form>
   );
 }

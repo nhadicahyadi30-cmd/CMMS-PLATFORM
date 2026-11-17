@@ -61,7 +61,7 @@ Cara manual (tanpa menu Perangkat) ada di bagian berikut.
 3. Board: *ESP32 Dev Module* → Upload. Buka Serial Monitor 115200.
 4. Anda akan melihat baris seperti `oli=71.2C arus=17.80A ... jam=1200.04 jalan=1` dan `terkirim 2 sampel`.
 5. **Set nilai awal running hour** sesuai hour meter fisik mesin: ketik di Serial Monitor `sethours 1204.5`. Nilai disimpan di flash. (Tanpa ini, hitungan dimulai dari 0.)
-6. Cek di MaintHub: Telemetri Mesin → nilai terakhir muncul dalam ±1 menit.
+6. Cek di MaintHub: Monitoring Mesin → nilai terakhir muncul dalam ±1 menit.
 
 Perintah serial: `status` (ringkasan), `sethours <jam>`, `wifi <nama> <password>` (simpan Wi-Fi ke flash tanpa flash ulang; nama berspasi pakai tanda kutip: `wifi "Nama WiFi" "password"`).
 
@@ -72,6 +72,9 @@ Alur: ESP32 → Node-RED → MaintHub. Keuntungan: API key tidak ada di ESP32, d
 3. Di `config.h` ESP32: `MH_URL "http://IP-NODERED:1880/mainthub/ingest"` dan `MH_API_KEY ""`.
 4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Firmware ESP32 di repo ini memakai jalur HTTP, bukan MQTT.
 Catatan: endpoint `/mainthub/ingest` di Node-RED tidak memakai autentikasi. Batasi di jaringan internal/VLAN, atau aktifkan `httpNodeAuth` di settings.js Node-RED.
+
+### 5c. Mode demo (data dummy, tanpa sensor)
+Untuk mencoba alur lengkap sebelum sensor terpasang: centang **Mode demo** saat mendaftarkan perangkat (atau set `#define DEMO_MODE 1` di `config.h`). ESP32 mengirim data buatan (suhu oli ±62 °C yang naik pelan sampai +25 °C, arus ±18 A, getaran kecil, mesin "jalan" terus, running hour bertambah). Library OneWire/DallasTemperature tidak diperlukan. Serial Monitor menampilkan `*** MODE DEMO ***`. Ketik `sethours 1200` bila ingin running hour mulai dari angka tertentu. Pakai **aset uji**: data dummy bercampur dengan data asli di aset yang sama. Ubah `DEMO_MODE` ke 0 dan upload ulang untuk beralih ke sensor sungguhan.
 
 ## 6. Cara kerja & batasannya
 - **Running hour** bertambah hanya saat input status jalan aktif (atau arus > `RUN_CURRENT_A` jika tanpa kabel kontak, dengan resolusi ±30 dtk). Disimpan ke flash tiap 10 menit dan setiap mesin start/stop; listrik mati paling banyak kehilangan 10 menit hitungan.

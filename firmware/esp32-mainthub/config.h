@@ -1,4 +1,4 @@
-// Contoh konfigurasi. Di MaintHub, menu Perangkat > Daftarkan ESP32 membuat file ini otomatis dengan kunci asli. JANGAN commit kunci asli ke Git.
+// Contoh konfigurasi. Di MaintHub, menu Perangkat ESP32 membuat file ini otomatis dengan kunci asli. JANGAN commit kunci asli ke Git.
 #pragma once
 
 // ---- Jaringan (isi, atau set tanpa flash ulang lewat Serial Monitor: wifi NAMA PASSWORD) ----
@@ -19,6 +19,9 @@
 #define TAG_CURRENT      "motor_current"
 #define TAG_VIBRATION    "vibration_rms"
 #define TAG_RUNHOURS     "running_hours"
+
+// ---- Mode demo: 1 = kirim DATA DUMMY (tanpa sensor), 0 = baca sensor sungguhan ----
+#define DEMO_MODE        0
 
 // ---- Sensor yang terpasang (0 = tidak dipakai) ----
 #define USE_DS18B20      1

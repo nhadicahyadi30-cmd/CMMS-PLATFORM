@@ -14,6 +14,17 @@
 #include <esp_task_wdt.h>
 #include <time.h>
 #include "config.h"
+#ifndef DEMO_MODE
+#define DEMO_MODE 0
+#endif
+#if DEMO_MODE   // data dummy: tanpa sensor, library OneWire/DallasTemperature tidak diperlukan
+#undef USE_DS18B20
+#define USE_DS18B20 0
+#undef USE_CURRENT
+#define USE_CURRENT 0
+#undef USE_MPU6050
+#define USE_MPU6050 0
+#endif
 #if USE_DS18B20
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -54,6 +65,12 @@ static void saveHours(bool force) {
   prefs.putUInt("rs", runSeconds); savedSeconds = runSeconds; lastSave = millis();
 }
 
+// ---- Data dummy (DEMO_MODE): pola realistis agar dashboard bisa dicoba tanpa sensor ----
+static float demoNoise(uint32_t seed) { seed = seed * 1664525u + 1013904223u; return ((seed >> 8) & 0xFFFF) / 65535.0f - 0.5f; }   // -0,5 .. 0,5
+static float demoOil() { float s = upMs / 1000.0f; float rise = s / 3600.0f * 1.5f; if (rise > 25) rise = 25; return 62 + 5 * sinf(s / 900.0f) + rise + demoNoise((uint32_t)s) * 0.8f; }   // naik ±1,5 °C/jam sampai +25 °C
+static float demoAmps() { float s = upMs / 1000.0f; return 18 + 1.2f * sinf(s / 300.0f) + demoNoise((uint32_t)s + 7) * 0.6f; }
+static float demoVib() { float s = upMs / 1000.0f; float v = 0.18f + s / 3600.0f * 0.01f + fabsf(demoNoise((uint32_t)s + 13)) * 0.02f; return v; }
+
 // ---- Pembacaan sensor ----
 static float readCurrentA() {
 #if USE_CURRENT
@@ -63,7 +80,7 @@ static float readCurrentA() {
   double mean = sum / N, var = sum2 / N - mean * mean; if (var < 0) var = 0;
   float vrms = sqrt(var) / 1000.0f; float a = vrms * CURRENT_CAL; return a < 0.15f ? 0.0f : a;  // noise di bawah 0,15 A dianggap 0
 #else
-  return NAN;
+  return DEMO_MODE ? demoAmps() : NAN;
 #endif
 }
 static float readOilC() {
@@ -72,7 +89,7 @@ static float readOilC() {
   if (t == DEVICE_DISCONNECTED_C || t < -40 || t > 150) return NAN;   // sensor lepas/rusak: jangan kirim
   return t;
 #else
-  return NAN;
+  return DEMO_MODE ? demoOil() : NAN;
 #endif
 }
 static float readVibG() {
@@ -86,7 +103,7 @@ static float readVibG() {
   }
   double m = s / N, v = s2 / N - m * m; return v > 0 ? sqrt(v) : 0;   // RMS komponen dinamis (gravitasi dibuang)
 #else
-  return NAN;
+  return DEMO_MODE ? demoVib() : NAN;
 #endif
 }
 
@@ -200,6 +217,7 @@ void setup() {
 #else
   esp_task_wdt_init(WDT_SECONDS, true); esp_task_wdt_add(NULL);
 #endif
+  if (DEMO_MODE) Serial.println("*** MODE DEMO: mengirim DATA DUMMY, bukan pembacaan sensor ***");
   Serial.printf("MaintHub node siap. perangkat=%s aset=%s fw=%s running_hour=%.2f jam boot#%lu\n", DEVICE_ID, MH_ASSET, FW_VERSION, hoursNow(), (unsigned long)boots);
   lastTick = millis();
 }
@@ -213,7 +231,7 @@ void loop() {
     runFrac += dt / 1000.0; while (runFrac >= 1.0) { runFrac -= 1.0; runSeconds++; }
     if (now - lastSave >= RUNHOUR_SAVE_MS) saveHours(false);
   }
-  bool inRun = readRunInput(PIN_RUN >= 0 ? 0 : lastAmps);
+  bool inRun = DEMO_MODE ? true : readRunInput(PIN_RUN >= 0 ? 0 : lastAmps);
   if (inRun != running) { running = inRun; saveHours(true); Serial.printf("mesin %s\n", running ? "JALAN" : "BERHENTI"); }
 
   if (now - lastSample >= SAMPLE_MS || lastSample == 0) {

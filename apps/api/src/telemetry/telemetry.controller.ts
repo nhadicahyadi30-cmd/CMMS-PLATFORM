@@ -249,7 +249,7 @@ export class TelemetryController {
       const dev = (await c.query('insert into ingest_devices (org_id, plant_id, asset_id, device_id, name, key_id, sensors, created_by) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id', [req.user.org, a.plant_id, a.id, deviceId, d.name, keyId, tags, req.user.sub])).rows[0];
       return {
         id: dev.id, deviceId, key: k.key, assetCode: a.code, createdTags, existingTags, warnings: srv.warnings,
-        config: renderConfig({ origin: srv.origin, key: k.key, asset: a.code, plant: a.plant_code, deviceId, tags }),
+        config: renderConfig({ origin: srv.origin, key: k.key, asset: a.code, plant: a.plant_code, deviceId, tags, demo: d.demo }), demo: d.demo,
         note: 'Simpan config.h ini sekarang. API key tidak dapat ditampilkan lagi; bila hilang, buat ulang kunci.',
       };
     });
@@ -268,7 +268,7 @@ export class TelemetryController {
       const keyId = randomUUID(); const k = newKey(keyId);
       await c.query('insert into ingest_keys (id, org_id, plant_id, name, secret_hash, created_by) values ($1,$2,$3,$4,$5,$6)', [keyId, req.user.org, dev.plant_id, `ESP32 ${dev.name}`.slice(0, 120), k.hash, req.user.sub]);
       await c.query('update ingest_devices set key_id = $2 where id = $1', [id, keyId]);
-      return { id, deviceId: dev.device_id, key: k.key, warnings: srv.warnings, config: renderConfig({ origin: srv.origin, key: k.key, asset: dev.asset_code, plant: dev.plant_code, deviceId: dev.device_id, tags: dev.sensors }), note: 'Kunci lama sudah dicabut: flash ulang ESP32 dengan config.h baru ini.' };
+      return { id, deviceId: dev.device_id, key: k.key, warnings: srv.warnings, config: renderConfig({ origin: srv.origin, key: k.key, asset: dev.asset_code, plant: dev.plant_code, deviceId: dev.device_id, tags: dev.sensors, demo: d.demo }), note: 'Kunci lama sudah dicabut: flash ulang ESP32 dengan config.h baru ini.' };
     });
   }
 

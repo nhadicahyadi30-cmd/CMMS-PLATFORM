@@ -15,8 +15,9 @@ export const DeviceCreate = z.object({
   name: z.string().trim().min(2).max(120),
   sensors: z.object({ oilTemp: z.boolean().default(true), current: z.boolean().default(true), vibration: z.boolean().default(false) }).default({ oilTemp: true, current: true, vibration: false }),
   serverUrl: z.string().trim().max(200),
+  demo: z.boolean().default(false),
 });
-export const RotateDto = z.object({ serverUrl: z.string().trim().max(200) });
+export const RotateDto = z.object({ serverUrl: z.string().trim().max(200), demo: z.boolean().default(false) });
 
 /** Tag yang akan dibuat/dipakai: running hour selalu ada. */
 export function selectedTags(s: { oilTemp: boolean; current: boolean; vibration: boolean }): SensorTag[] {
@@ -40,7 +41,7 @@ export function normalizeServerUrl(raw: string): { origin: string; warnings: str
 
 const cs = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ');
 
-export interface ConfigInput { origin: string; key: string; asset: string; plant: string; deviceId: string; tags: SensorTag[] }
+export interface ConfigInput { origin: string; key: string; asset: string; plant: string; deviceId: string; tags: SensorTag[]; demo?: boolean }
 /** Isi config.h lengkap yang siap di-flash (SSID/password diisi di tempat atau lewat perintah serial `wifi`). */
 export function renderConfig(i: ConfigInput): string {
   const has = (t: SensorTag) => (i.tags.includes(t) ? 1 : 0);
@@ -65,6 +66,9 @@ export function renderConfig(i: ConfigInput): string {
 #define TAG_CURRENT      "motor_current"
 #define TAG_VIBRATION    "vibration_rms"
 #define TAG_RUNHOURS     "running_hours"
+
+// ---- Mode demo: 1 = kirim DATA DUMMY (tanpa sensor), 0 = baca sensor sungguhan ----
+#define DEMO_MODE        ${i.demo ? 1 : 0}
 
 // ---- Sensor yang terpasang (0 = tidak dipakai) ----
 #define USE_DS18B20      ${has('oil_temp')}

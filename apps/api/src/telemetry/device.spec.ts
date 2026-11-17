@@ -25,6 +25,10 @@ test('renderConfig: setiap baris valid untuk C++ (komentar, #define, #pragma, ko
   const c = renderConfig({ origin: 'https://cmms.contoh.com', key: 'mhk_x.y', asset: 'A-1', plant: '', deviceId: 'esp-aaaaaa', tags: ['running_hours'] });
   for (const l of c.split('\n')) assert.match(l, /^(\s*|\/\/.*|#pragma once|#define \w+(\s+.*)?)$/, `baris tidak valid: ${l}`);
 });
+test('renderConfig: mode demo', () => {
+  const base = { origin: 'http://10.0.0.5', key: 'k', asset: 'A', plant: '', deviceId: 'esp-aaaaaa', tags: ['running_hours'] as any };
+  assert.match(renderConfig(base), /DEMO_MODE\s+0/); assert.match(renderConfig({ ...base, demo: true }), /DEMO_MODE\s+1/);
+});
 test('parseHeartbeat: valid dan rusak', () => {
   assert.deepEqual(parseHeartbeat({ id: 'esp-aaaaaa', rssi: -60, uptime: 10 }), { id: 'esp-aaaaaa', rssi: -60, uptime: 10 });
   assert.equal(parseHeartbeat({ id: 'x' }), null); assert.equal(parseHeartbeat({ id: 'esp-aaaaaa', rssi: 5 }), null); assert.equal(parseHeartbeat('x'), null);

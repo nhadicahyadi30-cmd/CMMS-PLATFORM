@@ -20,19 +20,19 @@ export default function DevicesPage() {
   const isAdmin = getUser()?.role === 'admin';
   const devs = useApi<Dev[]>('/telemetry/devices'); const assets = useApi<{ items: { id: string; code: string; name: string }[] }>(isAdmin ? '/assets?size=200' : null);
   const [assetId, setAssetId] = useState(''); const [name, setName] = useState(''); const [s, setS] = useState({ oilTemp: true, current: true, vibration: false });
-  const [server, setServer] = useState(''); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false); const [res, setRes] = useState<Created | null>(null); const [copied, setCopied] = useState(false);
+  const [server, setServer] = useState(''); const [demo, setDemo] = useState(false); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false); const [res, setRes] = useState<Created | null>(null); const [copied, setCopied] = useState(false);
   useEffect(() => { if (typeof window !== 'undefined' && !/^(localhost|127\.)/.test(window.location.hostname)) setServer(window.location.origin); }, []);
   useEffect(() => { const t = setInterval(() => devs.reload(), 15000); return () => clearInterval(t); }, [devs.reload]);
 
   async function create(e: FormEvent) {
     e.preventDefault(); setErr(''); setRes(null); setBusy(true);
-    try { setRes(await api<Created>('/telemetry/devices', { method: 'POST', body: { assetId, name, sensors: s, serverUrl: server } })); setName(''); devs.reload(); }
+    try { setRes(await api<Created>('/telemetry/devices', { method: 'POST', body: { assetId, name, sensors: s, serverUrl: server, demo } })); setName(''); devs.reload(); }
     catch (x) { setErr(msg(x)); } finally { setBusy(false); }
   }
   async function rotate(d: Dev) {
     if (!server) { setErr('Isi "Alamat server" di formulir dulu, karena dipakai untuk config.h baru.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!confirm(`Buat kunci baru untuk ${d.name}? Kunci lama langsung dicabut dan ESP32 harus di-flash ulang.`)) return;
-    setErr(''); try { setRes(await api<Created>(`/telemetry/devices/${d.id}/rotate-key`, { method: 'POST', body: { serverUrl: server } })); devs.reload(); window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (x) { setErr(msg(x)); }
+    setErr(''); try { setRes(await api<Created>(`/telemetry/devices/${d.id}/rotate-key`, { method: 'POST', body: { serverUrl: server, demo } })); devs.reload(); window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (x) { setErr(msg(x)); }
   }
   async function remove(d: Dev) {
     if (!confirm(`Nonaktifkan ${d.name}? Kunci dicabut dan data dari perangkat ini ditolak.`)) return;
@@ -60,6 +60,7 @@ export default function DevicesPage() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.oilTemp} onChange={(e) => setS({ ...s, oilTemp: e.target.checked })} />Suhu oli (DS18B20)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.current} onChange={(e) => setS({ ...s, current: e.target.checked })} />Arus motor (SCT-013)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.vibration} onChange={(e) => setS({ ...s, vibration: e.target.checked })} />Getaran (MPU6050)</label></fieldset>
+          <label className="flex items-start gap-2 rounded bg-blue-50 p-2 text-sm text-blue-900"><input type="checkbox" className="mt-1" checked={demo} onChange={(e) => setDemo(e.target.checked)} /><span><b>Mode demo (data dummy)</b>: ESP32 mengirim data buatan tanpa sensor (suhu oli naik pelan, arus, getaran, mesin &quot;jalan&quot;), supaya dashboard bisa dicoba. Pakai aset uji, karena data dummy akan bercampur dengan data asli di aset yang sama. Untuk beralih ke sensor sungguhan: ubah <code>DEMO_MODE</code> menjadi 0 di <code>config.h</code> lalu upload ulang.</span></label>
           <p className="text-xs text-slate-500">Alamat server harus IP/nama yang bisa dibuka dari jaringan ESP32, bukan <code>localhost</code>. Di Windows: jalankan <code>ipconfig</code> dan pakai &quot;IPv4 Address&quot; laptop/server. Pastikan firewall mengizinkan port 80.</p>
           <button className="btn" disabled={busy}>{busy ? 'Membuat…' : 'Daftarkan & buat config.h'}</button>
         </form>)}

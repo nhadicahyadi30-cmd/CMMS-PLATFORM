@@ -82,7 +82,10 @@ node tools/simulate-esp32.mjs --url http://localhost/api/ingest/readings --key m
 ```
 Membuat data 24 jam dengan tren suhu oli naik, getaran naik pelan, dan running hour berjalan, lalu lanjut mengirim tiap 30 dtk. Pastikan aset dan keempat tag sudah dibuat. Tambahkan `--dry-run` untuk hanya melihat contoh payload. Hapus data simulasi sebelum produksi (gunakan aset khusus uji).
 
-## 9. Dashboard Prediksi
+## 9. Monitoring Mesin (langsung) dan Dashboard Prediksi
+**Analitik → Monitoring Mesin** menampilkan kartu per mesin: nilai sensor terbaru, tren (30 menit–12 jam), batas peringatan/kritis pada bar, **JALAN/BERHENTI** (dari kenaikan running hour 20 menit terakhir; butuh ≥ 2 pembacaan), status koneksi (Online ≤ 3 mnt, Tertunda ≤ 15 mnt, Offline), dan running hour. Diperbarui otomatis tiap 15 detik. Mesin yang kritis tampil paling atas.
+
+### Dashboard Prediksi
 *Analitik → Dashboard Prediksi* menghitung otomatis dari data 24 jam (bisa 6 jam–7 hari): tren per jam (regresi linear), **perkiraan waktu mencapai batas peringatan/kritis** (hanya jika tren konsisten, r² ≥ 0,6, maksimum 30 hari), penyimpangan dari pola biasanya, **skor kesehatan** aset, dan **perkiraan jatuh tempo PM** dari laju running hour 7 hari terakhir. Metodenya sederhana dan dapat dijelaskan; ini alat bantu prioritas, bukan jaminan kapan mesin rusak. Tombol *Buat alarm* membuat alarm manual dari prediksi, dan dari alarm bisa dibuat Work Order.
 
 ## 10. Pemecahan masalah

@@ -6,6 +6,7 @@ import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 import { newKey } from './telemetry.rules';
+import { connOf, levelOf, runStateOf, worstLevel, Level } from './monitor.rules';
 import { healthScore, pmForecast, predictSensor, worstStatus, SensorStatus } from './predict.rules';
 
 const Lim = z.number().finite().nullish();
@@ -158,6 +159,54 @@ export class TelemetryController {
       const summary = { assets: assets.length, critical: 0, risk: 0, watch: 0, offline: 0, ok: 0, nodata: 0, pmOverdue: 0, pmSoon: 0 } as Record<string, number>;
       for (const a of assets) { summary[a.status]++; summary.pmOverdue += a.pm.filter((x: any) => x.state === 'overdue').length; summary.pmSoon += a.pm.filter((x: any) => x.state === 'soon').length; }
       return { generatedAt: new Date(now).toISOString(), windowHours: d.hours, summary, assets };
+    });
+  }
+
+  /** Monitoring langsung: nilai terakhir, tren 60 menit, status koneksi dan jalan/berhenti per mesin. */
+  @Get('monitor')
+  monitor(@Query() q: unknown, @Req() req: any) {
+    const d = parse(z.object({ minutes: z.coerce.number().int().min(10).max(720).default(60) }), q);
+    return this.run(req, async (c) => {
+      const now = Date.now();
+      const tags = (await c.query(
+        `select ${TAG_SEL}, a.plant_id as "plantId", r.ts as "lastTs", r.value::float8 as "lastValue"
+           from sensor_tags t join assets a on a.id = t.asset_id
+           left join lateral (select ts, value from sensor_readings where tag_id = t.id order by ts desc limit 1) r on true
+          where t.active order by a.code, t.name limit 500`)).rows;
+      const ids = tags.map((t: any) => t.id);
+      const spark = new Map<string, number[]>(); const win = new Map<string, { n: number; mn: number; mx: number }>();
+      if (ids.length) {
+        for (const r of (await c.query(
+          `select tag_id, avg(value)::float8 as v from (
+              select tag_id, value, date_bin(make_interval(mins => greatest(1, $2::int / 24)), ts, timestamptz '2000-01-01') as b
+                from sensor_readings where tag_id = any($1::uuid[]) and ts >= now() - make_interval(mins => $2::int)) x
+            group by tag_id, b order by tag_id, b`, [ids, d.minutes])).rows) {
+          const a = spark.get(r.tag_id) ?? []; a.push(r.v); spark.set(r.tag_id, a);
+        }
+        for (const r of (await c.query(
+          `select tag_id, count(*)::int as n, min(value)::float8 as mn, max(value)::float8 as mx from sensor_readings
+            where tag_id = any($1::uuid[]) and ts >= now() - interval '20 minutes' group by tag_id`, [ids])).rows) win.set(r.tag_id, { n: r.n, mn: r.mn, mx: r.mx });
+      }
+      const m = new Map<string, any>();
+      for (const t of tags) {
+        let a = m.get(t.assetId); if (!a) { a = { assetId: t.assetId, code: t.assetCode, name: t.assetName, plantId: t.plantId, lastTs: null as number | null, runningHours: null as number | null, runState: 'unknown', sensors: [] as any[] }; m.set(t.assetId, a); }
+        const ts = t.lastTs ? new Date(t.lastTs).getTime() : null;
+        if (ts != null && (a.lastTs == null || ts > a.lastTs)) a.lastTs = ts;
+        const lim = { warnHigh: t.warnHigh, critHigh: t.critHigh, warnLow: t.warnLow, critLow: t.critLow };
+        const stale = ts == null || now - ts > 15 * 60_000;
+        a.sensors.push({ tagId: t.id, tag: t.tag, name: t.name, unit: t.unit, kind: t.kind, lastValue: t.lastValue, lastTs: t.lastTs, ...lim, level: stale ? 'ok' : levelOf(t.lastValue, lim), spark: spark.get(t.id) ?? [] });
+        if (t.kind === 'runhours') { a.runningHours = t.lastValue; a._w = win.get(t.id); }
+      }
+      const assets = [...m.values()].map((a) => {
+        const conn = connOf(a.lastTs, now);
+        const w = a._w; delete a._w;
+        const runState = runStateOf(w?.n ?? 0, w?.mn ?? null, w?.mx ?? null, conn);
+        const level: Level = worstLevel(a.sensors.map((s: any) => s.level));
+        return { ...a, conn, runState, level };
+      }).sort((x, y) => (y.level === 'critical' ? 2 : y.level === 'warning' ? 1 : 0) - (x.level === 'critical' ? 2 : x.level === 'warning' ? 1 : 0) || x.code.localeCompare(y.code));
+      const sum = { assets: assets.length, online: 0, offline: 0, running: 0, stopped: 0, warning: 0, critical: 0 };
+      for (const a of assets) { if (a.conn === 'online' || a.conn === 'delayed') sum.online++; else sum.offline++; if (a.runState === 'running') sum.running++; if (a.runState === 'stopped') sum.stopped++; if (a.level === 'warning') sum.warning++; if (a.level === 'critical') sum.critical++; }
+      return { generatedAt: new Date(now).toISOString(), minutes: d.minutes, summary: sum, assets };
     });
   }
 }

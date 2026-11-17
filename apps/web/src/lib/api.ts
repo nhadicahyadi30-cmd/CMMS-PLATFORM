@@ -25,7 +25,7 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   if (r.status === 401 && retry && (await bootstrap())) return api<T>(path, init, false);
   if (r.status === 204) return undefined as T;
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? 'Terjadi kesalahan', d);
+  if (!r.ok) throw new ApiError(r.status, typeof d.message === 'string' ? d.message : d.message?.message ?? (r.status >= 502 && r.status <= 504 ? `Server API tidak bisa dihubungi (HTTP ${r.status}). Jalankan: docker compose ps` : `Terjadi kesalahan (HTTP ${r.status})`), d);
   return d as T;
 }
 

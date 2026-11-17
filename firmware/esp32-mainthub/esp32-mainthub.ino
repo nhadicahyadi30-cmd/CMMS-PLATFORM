@@ -166,7 +166,9 @@ done:
   }
   if (code == 401) { authFailed = true; Serial.println("API key ditolak (401). Periksa MH_API_KEY; pengiriman dihentikan sampai reboot."); return false; }
   if (code == 400) { bufHead = (bufHead + take) % BUFFER_MAX; bufCount -= take; Serial.printf("format ditolak (400): %s\n", resp.c_str()); return false; }   // data cacat: buang agar tidak macet
-  Serial.printf("gagal kirim (HTTP %d), antrean %d\n", code, bufCount);
+  Serial.printf("gagal kirim (HTTP %d: %s), antrean %d\n", code, HTTPClient::errorToString(code).c_str(), bufCount);
+  Serial.printf("  tujuan : %s\n  ESP32  : IP %s, gateway %s, sinyal %d dBm\n", MH_URL, WiFi.localIP().toString().c_str(), WiFi.gatewayIP().toString().c_str(), (int)WiFi.RSSI());
+  if (code == -1) Serial.println("  artinya: tidak bisa membuka sambungan ke server. Cek: IP di MH_URL = IPv4 laptop, firewall port 80, satu Wi-Fi yang sama, server menyala.");
   return false;
 }
 

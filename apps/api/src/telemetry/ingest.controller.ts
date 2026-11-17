@@ -4,6 +4,7 @@ import { DbService } from '../db/db.service';
 import { Public } from '../auth/auth.guard';
 import { parse } from '../common/http';
 import { RateLimiter } from '../leads/leads.rules';
+import { parseHeartbeat } from './device.rules';
 import { FRESH_MS, IngestDto, Reading, alarmMessage, breach, confirmedSeverity, num, parseKey, parseTs, secretMatches } from './telemetry.rules';
 
 class ItemError extends Error {}
@@ -35,8 +36,8 @@ export class IngestController {
   @Public() @Post('readings') @HttpCode(200)
   async readings(@Body() b: unknown, @Req() req: any) {
     const k = await this.authenticate(req);
-    const { readings } = parse(IngestDto, b) as { readings: Reading[] };
-    const out = { serverTime: new Date().toISOString(), received: readings.length, accepted: 0, duplicates: 0, alarmsRaised: 0, alarmsEscalated: 0, errors: [] as { index: number; error: string }[] };
+    const { readings, device } = parse(IngestDto, b) as { readings: Reading[]; device?: unknown };
+    const out = { serverTime: new Date().toISOString(), received: readings.length, accepted: 0, duplicates: 0, alarmsRaised: 0, alarmsEscalated: 0, errors: [] as { index: number; error: string }[], device: undefined as string | undefined };
     await this.db.tx(this.ctx(k), async (c) => {
       const assets = new Map<string, any>(); const tags = new Map<string, any>();
       for (let i = 0; i < readings.length; i++) {
@@ -47,6 +48,19 @@ export class IngestController {
           out.errors.push({ index: i, error: e instanceof ItemError ? e.message : friendly(e) });
           if (!(e instanceof ItemError) && !friendly(e).startsWith('nilai')) this.log.warn(`item ${i}: ${e?.message}`);
         }
+      }
+      const hb = parseHeartbeat(device);
+      if (hb) {
+        await c.query('savepoint hb');
+        try {
+          const r = await c.query(
+            `update ingest_devices set fw = coalesce($3, fw), ip = coalesce($4, ip), rssi = coalesce($5, rssi), uptime_s = coalesce($6, uptime_s), queue = coalesce($7, queue),
+                    heap_kb = coalesce($8, heap_kb), boots = coalesce($9, boots), readings_total = readings_total + $10, last_seen = now()
+              where device_id = $1 and key_id = $2 and active returning id`,
+            [hb.id, k.id, hb.fw ?? null, hb.ip ?? null, hb.rssi ?? null, hb.uptime ?? null, hb.queue ?? null, hb.heap ?? null, hb.boots ?? null, out.accepted]);
+          out.device = r.rows[0] ? 'ok' : 'unregistered';
+          await c.query('release savepoint hb');
+        } catch (e: any) { await c.query('rollback to savepoint hb'); this.log.warn(`heartbeat: ${e?.message}`); }
       }
     });
     return out;

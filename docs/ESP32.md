@@ -31,7 +31,16 @@ MPU6050      : VCC → 3V3 · GND → GND · SDA → GPIO21 · SCL → GPIO22
 ```
 Gunakan **ADC1** (GPIO32–39) untuk arus; ADC2 tidak dapat dipakai saat Wi-Fi menyala.
 
-## 4. Siapkan di MaintHub (sekali)
+## 4. Cara cepat: menu Perangkat ESP32 (disarankan)
+1. Login sebagai Admin → **Analitik → Perangkat ESP32** → *Daftarkan ESP32 baru*: pilih mesin, beri nama, centang sensor yang terpasang, isi **alamat server** (IP laptop/server yang bisa dijangkau ESP32, mis. `http://192.168.1.50`; bukan `localhost`).
+2. MaintHub otomatis membuat sensor (`oil_temp`, `motor_current`, `vibration_rms`, `running_hours`) bila belum ada, satu API key khusus perangkat (terbatas ke plant mesin), dan **config.h** siap pakai. Unduh sekarang: kunci tidak bisa ditampilkan lagi (bila hilang, klik *Kunci baru* dan flash ulang).
+3. Taruh `config.h` di `firmware/esp32-mainthub/`, isi Wi-Fi, upload (bagian 5). Status di tabel berubah dari *Menunggu data pertama* menjadi *Online*.
+4. Tabel menampilkan juga kekuatan Wi-Fi, uptime, jumlah reboot, antrean data, versi firmware, dan total pembacaan, dari "heartbeat" yang dikirim ESP32 bersama datanya.
+Batas alarm awal (suhu oli 85/95 °C) hanya contoh: sesuaikan di menu Telemetri.
+
+Cara manual (tanpa menu Perangkat) ada di bagian berikut.
+
+## 4b. Siapkan di MaintHub secara manual (sekali)
 1. **Aset**: pastikan mesin sudah ada di *Aset & Equipment* (catat kodenya, mis. `PMP-203`).
 2. **API key**: *Telemetri Mesin* → API key pengirim data → buat kunci (Admin). Salin sekarang; tidak bisa ditampilkan lagi. Disarankan **satu kunci per plant**.
 3. **Sensor/tag** (menu yang sama → Tambah sensor). Contoh, sesuaikan dengan spesifikasi mesin Anda dari manual/OEM:
@@ -54,7 +63,7 @@ Gunakan **ADC1** (GPIO32–39) untuk arus; ADC2 tidak dapat dipakai saat Wi-Fi m
 5. **Set nilai awal running hour** sesuai hour meter fisik mesin: ketik di Serial Monitor `sethours 1204.5`. Nilai disimpan di flash. (Tanpa ini, hitungan dimulai dari 0.)
 6. Cek di MaintHub: Telemetri Mesin → nilai terakhir muncul dalam ±1 menit.
 
-Perintah serial: `status` (ringkasan), `sethours <jam>`.
+Perintah serial: `status` (ringkasan), `sethours <jam>`, `wifi <nama> <password>` (simpan Wi-Fi ke flash tanpa flash ulang; nama berspasi pakai tanda kutip: `wifi "Nama WiFi" "password"`).
 
 ### 5b. Lewat Node-RED (opsional, disarankan bila sudah ada Node-RED di pabrik)
 Alur: ESP32 → Node-RED → MaintHub. Keuntungan: API key tidak ada di ESP32, dan Node-RED bisa juga menerima PLC/MQTT lain.

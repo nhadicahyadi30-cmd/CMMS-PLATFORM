@@ -24,7 +24,7 @@ export const ReadingDto = z.object({
   ts: z.union([z.string().trim().min(1), z.number()]).optional(), // ISO 8601 atau epoch (detik/milidetik); kosong = sekarang
 });
 export const IngestDto = z.union([
-  z.object({ readings: z.array(ReadingDto).min(1, 'readings kosong').max(500, 'maksimal 500 pembacaan per permintaan') }),
+  z.object({ readings: z.array(ReadingDto).min(1, 'readings kosong').max(500, 'maksimal 500 pembacaan per permintaan'), device: z.unknown().optional() }),
   ReadingDto.transform((r) => ({ readings: [r] })),
 ]);
 export type Reading = z.infer<typeof ReadingDto>;

@@ -3,7 +3,8 @@
   dan RUNNING HOUR kumulatif yang tahan mati listrik. Mengirim batch ke POST /api/ingest/readings.
 
   Library (Arduino Library Manager): OneWire, DallasTemperature. Board: ESP32 Arduino core 2.x atau 3.x.
-  Perintah serial (115200): status | sethours <jam>   (set nilai awal running hour, mis. sesuai hour meter fisik)
+  Perintah serial (115200): status | sethours <jam> | wifi <nama> <password>
+  (sethours: nilai awal running hour sesuai hour meter fisik; wifi: simpan Wi-Fi ke flash tanpa flash ulang)
 */
 #include <Arduino.h>
 #include <WiFi.h>
@@ -21,6 +22,8 @@
 #include <Wire.h>
 #endif
 
+#define FW_VERSION "1.1.0"
+
 struct Sample { uint32_t ts; float oil; float amps; float vib; float hours; };  // ts = epoch detik (0 = waktu belum valid)
 
 static Preferences prefs;
@@ -33,6 +36,10 @@ static uint32_t lastTick = 0, lastSample = 0, lastSend = 0, lastSave = 0, lastWi
 static uint32_t savedSeconds = 0;
 static float lastAmps = 0;
 static bool authFailed = false;
+static String wifiSsid, wifiPass;
+static uint64_t upMs = 0;
+static uint32_t boots = 0;
+static bool unregisteredWarned = false;
 #if USE_DS18B20
 static OneWire ow(PIN_ONEWIRE);
 static DallasTemperature ds(&ow);
@@ -113,7 +120,11 @@ static bool sendBatch() {
     for (auto& it : items) { l = appendReading(body, sizeof body, len, it.tag, it.v, s.ts, first); if (l < 0) { take = i; goto done; } if (l != len) first = false; len = l; }
   }
 done:
-  len += snprintf(body + len, sizeof body - len, "]}");
+  {
+    String ip = WiFi.localIP().toString();
+    len += snprintf(body + len, sizeof body - len, "],\"device\":{\"id\":\"%s\",\"fw\":\"%s\",\"ip\":\"%s\",\"rssi\":%d,\"uptime\":%lu,\"queue\":%d,\"heap\":%lu,\"boots\":%lu}}",
+                    DEVICE_ID, FW_VERSION, ip.c_str(), (int)WiFi.RSSI(), (unsigned long)(upMs / 1000), bufCount - take, (unsigned long)(ESP.getFreeHeap() / 1024), (unsigned long)boots);
+  }
   if (take == 0) return false;
 
   HTTPClient http; WiFiClientSecure tls; WiFiClient plain; bool https = String(MH_URL).startsWith("https");
@@ -131,6 +142,7 @@ done:
   if (code == 200) {
     bufHead = (bufHead + take) % BUFFER_MAX; bufCount -= take;     // item yang ditolak server (mis. di luar rentang) tidak akan berhasil bila diulang, jadi tidak ditahan
     int e = resp.indexOf("\"errors\":[{"); if (e >= 0) Serial.printf("server menolak sebagian: %s\n", resp.substring(e, e + 160).c_str());
+    if (!unregisteredWarned && resp.indexOf("\"device\":\"unregistered\"") >= 0) { unregisteredWarned = true; Serial.println("peringatan: DEVICE_ID belum terdaftar di MaintHub (menu Perangkat). Data tetap diterima."); }
     int sv = resp.indexOf("\"serverTime\":\""); if (sv >= 0 && !timeValid()) Serial.println("catatan: jam belum sinkron NTP; waktu pembacaan memakai waktu server");
     Serial.printf("terkirim %d sampel (sisa antrean %d)\n", take, bufCount);
     return true;
@@ -151,12 +163,18 @@ static void handleSerial() {
     float h = l.substring(9).toFloat();
     if (h >= 0 && h < 1000000) { runSeconds = (uint32_t)(h * 3600.0f); runFrac = 0; saveHours(true); Serial.printf("running hour diset ke %.2f jam\n", h); }
     else Serial.println("nilai tidak valid");
-  } else Serial.println("perintah: status | sethours <jam>");
+  } else if (l.startsWith("wifi ")) {
+    // wifi NAMA PASSWORD   atau   wifi "Nama Dengan Spasi" "password"   (disimpan di flash, tanpa flash ulang)
+    String r = l.substring(5); r.trim(); String a, b;
+    auto take = [](String& src, String& out) { src.trim(); if (src.startsWith("\"")) { int e = src.indexOf('"', 1); if (e < 0) return false; out = src.substring(1, e); src = src.substring(e + 1); } else { int e = src.indexOf(' '); if (e < 0) { out = src; src = ""; } else { out = src.substring(0, e); src = src.substring(e + 1); } } src.trim(); return out.length() > 0; };
+    if (take(r, a)) { if (r.length() && r.startsWith("\"")) take(r, b); else b = r; wifiSsid = a; wifiPass = b; prefs.putString("ssid", wifiSsid); prefs.putString("pass", wifiPass); Serial.printf("Wi-Fi disimpan: %s. Menyambung...\n", wifiSsid.c_str()); lastWifiTry = 0; WiFi.disconnect(); }
+    else Serial.println("format: wifi NAMA PASSWORD");
+  } else Serial.println("perintah: status | sethours <jam> | wifi <nama> <password>");
 }
 
 static void connectWifi() {
   if (WiFi.status() == WL_CONNECTED || millis() - lastWifiTry < 15000) return;
-  lastWifiTry = millis(); WiFi.disconnect(); WiFi.begin(WIFI_SSID, WIFI_PASS);
+  lastWifiTry = millis(); WiFi.disconnect(); WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
 }
 
 void setup() {
@@ -172,7 +190,9 @@ void setup() {
 #if USE_MPU6050
   Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL); Wire.beginTransmission(0x68); Wire.write(0x6B); Wire.write(0); Wire.endTransmission(true);
 #endif
-  WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASS); lastWifiTry = millis();
+  wifiSsid = prefs.getString("ssid", WIFI_SSID); wifiPass = prefs.getString("pass", WIFI_PASS);
+  boots = prefs.getUInt("boots", 0) + 1; prefs.putUInt("boots", boots);
+  WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); WiFi.begin(wifiSsid.c_str(), wifiPass.c_str()); lastWifiTry = millis();
   configTime(0, 0, NTP_SERVER);
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
   esp_task_wdt_config_t wc = { .timeout_ms = WDT_SECONDS * 1000, .idle_core_mask = 0, .trigger_panic = true };
@@ -180,13 +200,13 @@ void setup() {
 #else
   esp_task_wdt_init(WDT_SECONDS, true); esp_task_wdt_add(NULL);
 #endif
-  Serial.printf("MaintHub node siap. aset=%s running_hour=%.2f jam\n", MH_ASSET, hoursNow());
+  Serial.printf("MaintHub node siap. perangkat=%s aset=%s fw=%s running_hour=%.2f jam boot#%lu\n", DEVICE_ID, MH_ASSET, FW_VERSION, hoursNow(), (unsigned long)boots);
   lastTick = millis();
 }
 
 void loop() {
   esp_task_wdt_reset(); handleSerial(); connectWifi();
-  uint32_t now = millis(), dt = now - lastTick; lastTick = now;
+  uint32_t now = millis(), dt = now - lastTick; lastTick = now; upMs += dt;
 
   // Akumulasi running hour setiap iterasi (ketelitian milidetik, tidak bergantung interval kirim).
   if (running) {

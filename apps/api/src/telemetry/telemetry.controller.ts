@@ -6,6 +6,7 @@ import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 import { newKey } from './telemetry.rules';
+import { DeviceCreate, RotateDto, SENSOR_DEFS, SensorTag, devConn, newDeviceId, normalizeServerUrl, renderConfig, selectedTags, signalOf } from './device.rules';
 import { connOf, levelOf, runStateOf, worstLevel, Level } from './monitor.rules';
 import { healthScore, pmForecast, predictSensor, worstStatus, SensorStatus } from './predict.rules';
 
@@ -207,6 +208,77 @@ export class TelemetryController {
       const sum = { assets: assets.length, online: 0, offline: 0, running: 0, stopped: 0, warning: 0, critical: 0 };
       for (const a of assets) { if (a.conn === 'online' || a.conn === 'delayed') sum.online++; else sum.offline++; if (a.runState === 'running') sum.running++; if (a.runState === 'stopped') sum.stopped++; if (a.level === 'warning') sum.warning++; if (a.level === 'critical') sum.critical++; }
       return { generatedAt: new Date(now).toISOString(), minutes: d.minutes, summary: sum, assets };
+    });
+  }
+
+  // ---- Perangkat ESP32 terdaftar ----
+  private serverOrigin(raw: string) {
+    try { return normalizeServerUrl(raw); } catch (e: any) { throw new HttpException(e.message, HttpStatus.BAD_REQUEST); }
+  }
+
+  @Get('devices')
+  devices(@Req() req: any) {
+    return this.run(req, async (c) => {
+      const now = Date.now();
+      const rows = (await c.query(
+        `select d.id, d.device_id as "deviceId", d.name, d.active, d.sensors, d.fw, d.ip, d.rssi, d.uptime_s::float8 as "uptimeS", d.queue, d.heap_kb as "heapKb", d.boots,
+                d.readings_total::float8 as "readingsTotal", d.created_at as "createdAt", d.last_seen as "lastSeen", a.id as "assetId", a.code as "assetCode", a.name as "assetName", coalesce(k.active, false) as "keyActive"
+           from ingest_devices d join assets a on a.id = d.asset_id left join ingest_keys k on k.id = d.key_id order by d.created_at desc limit 200`)).rows;
+      return rows.map((r: any) => ({ ...r, conn: r.active ? devConn(r.lastSeen ? new Date(r.lastSeen).getTime() : null, now) : 'disabled', signal: signalOf(r.rssi) }));
+    });
+  }
+
+  /** Daftarkan perangkat: membuat sensor (bila belum ada), API key khusus perangkat, dan config.h siap flash. Kunci hanya tampil sekali. */
+  @Post('devices') @Roles('admin')
+  createDevice(@Body() b: unknown, @Req() req: any) {
+    const d = parse(DeviceCreate, b); const srv = this.serverOrigin(d.serverUrl);
+    return this.run(req, async (c) => {
+      const a = (await c.query('select a.id, a.code, a.plant_id, p.code::text as plant_code from assets a join plants p on p.id = a.plant_id where a.id = $1', [d.assetId])).rows[0];
+      if (!a) throw new HttpException('Aset tidak ditemukan', HttpStatus.NOT_FOUND);
+      const tags = selectedTags(d.sensors); const createdTags: string[] = [], existingTags: string[] = [];
+      for (const t of tags) {
+        const df = SENSOR_DEFS[t as SensorTag];
+        const r = await c.query(
+          `insert into sensor_tags (org_id, plant_id, asset_id, tag, name, unit, kind, warn_high, crit_high, min_valid, max_valid, confirm_count) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+           on conflict (org_id, asset_id, tag) do nothing returning id`,
+          [req.user.org, a.plant_id, a.id, df.tag, df.name, df.unit, df.kind, df.warnHigh, df.critHigh, df.minValid, df.maxValid, df.confirm]);
+        (r.rows[0] ? createdTags : existingTags).push(t);
+      }
+      const keyId = randomUUID(); const k = newKey(keyId); const deviceId = newDeviceId();
+      await c.query('insert into ingest_keys (id, org_id, plant_id, name, secret_hash, created_by) values ($1,$2,$3,$4,$5,$6)', [keyId, req.user.org, a.plant_id, `ESP32 ${d.name}`.slice(0, 120), k.hash, req.user.sub]);
+      const dev = (await c.query('insert into ingest_devices (org_id, plant_id, asset_id, device_id, name, key_id, sensors, created_by) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id', [req.user.org, a.plant_id, a.id, deviceId, d.name, keyId, tags, req.user.sub])).rows[0];
+      return {
+        id: dev.id, deviceId, key: k.key, assetCode: a.code, createdTags, existingTags, warnings: srv.warnings,
+        config: renderConfig({ origin: srv.origin, key: k.key, asset: a.code, plant: a.plant_code, deviceId, tags }),
+        note: 'Simpan config.h ini sekarang. API key tidak dapat ditampilkan lagi; bila hilang, buat ulang kunci.',
+      };
+    });
+  }
+
+  /** Cabut kunci lama dan buat kunci baru untuk perangkat (kunci hilang/bocor). */
+  @Post('devices/:id/rotate-key') @Roles('admin')
+  rotateKey(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
+    const d = parse(RotateDto, b); const srv = this.serverOrigin(d.serverUrl);
+    return this.run(req, async (c) => {
+      const dev = (await c.query(`select d.id, d.device_id, d.name, d.sensors, d.key_id, d.active, d.plant_id, a.code as asset_code, p.code::text as plant_code
+                                    from ingest_devices d join assets a on a.id = d.asset_id join plants p on p.id = d.plant_id where d.id = $1`, [id])).rows[0];
+      if (!dev) throw new HttpException('Perangkat tidak ditemukan', HttpStatus.NOT_FOUND);
+      if (!dev.active) throw new HttpException('Perangkat sudah dinonaktifkan', HttpStatus.CONFLICT);
+      if (dev.key_id) await c.query('update ingest_keys set active = false where id = $1', [dev.key_id]);
+      const keyId = randomUUID(); const k = newKey(keyId);
+      await c.query('insert into ingest_keys (id, org_id, plant_id, name, secret_hash, created_by) values ($1,$2,$3,$4,$5,$6)', [keyId, req.user.org, dev.plant_id, `ESP32 ${dev.name}`.slice(0, 120), k.hash, req.user.sub]);
+      await c.query('update ingest_devices set key_id = $2 where id = $1', [id, keyId]);
+      return { id, deviceId: dev.device_id, key: k.key, warnings: srv.warnings, config: renderConfig({ origin: srv.origin, key: k.key, asset: dev.asset_code, plant: dev.plant_code, deviceId: dev.device_id, tags: dev.sensors }), note: 'Kunci lama sudah dicabut: flash ulang ESP32 dengan config.h baru ini.' };
+    });
+  }
+
+  @Delete('devices/:id') @Roles('admin')
+  removeDevice(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
+    return this.run(req, async (c) => {
+      const r = await c.query('update ingest_devices set active = false where id = $1 returning key_id', [id]);
+      if (!r.rows[0]) throw new HttpException('Perangkat tidak ditemukan', HttpStatus.NOT_FOUND);
+      if (r.rows[0].key_id) await c.query('update ingest_keys set active = false where id = $1', [r.rows[0].key_id]);
+      return { id, active: false };
     });
   }
 }

@@ -19,6 +19,7 @@ const I: Record<string, Icon> = {
   imp: 'M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3',
   tel: 'M3 12h4l2-6 4 12 2-6h6',
   mon: 'M3 4h18v12H3zM8 20h8M12 16v4M7 11l3-3 3 3 4-4',
+  dev: 'M7 7h10v10H7zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4',
   pred: 'M3 17l5-5 4 3 8-9M15 6h5v5',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
@@ -32,6 +33,7 @@ const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group
   { m: 8, href: '/rca', label: 'RCA & Failure', icon: 'rca', group: 'Analitik' },
   { m: 1, href: '/monitoring', label: 'Monitoring Mesin', icon: 'mon', group: 'Analitik' },
   { m: 1, href: '/predictions', label: 'Dashboard Prediksi', icon: 'pred', group: 'Analitik' },
+  { m: 1, href: '/devices', label: 'Perangkat ESP32', icon: 'dev', group: 'Analitik' },
   { m: 1, href: '/telemetry', label: 'Telemetri (Sensor & Kunci)', icon: 'tel', group: 'Analitik' },
   { m: 7, href: '/energy', label: 'Electrical & Utility', icon: 'energy', group: 'Analitik' },
   { m: 5, href: '/ai', label: 'AI Assistant', icon: 'ai', group: 'Analitik' },

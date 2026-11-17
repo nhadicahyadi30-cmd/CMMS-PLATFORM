@@ -15,6 +15,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Telemetri mesin: API ingest untuk Node-RED, batas alarm, running hour → meter PM | ✅ diuji di level database dan aturan; belum dengan perangkat nyata; lihat docs/TELEMETRY.md |
 | Dashboard Prediksi (tren, perkiraan waktu mencapai batas, anomali, skor kesehatan, PM berbasis jam) + firmware ESP32 + simulator | ✅ logika prediksi dan SQL diuji; firmware dikompilasi dan dijalankan dengan perangkat tiruan; **belum diuji di ESP32/sensor nyata**; lihat docs/ESP32.md |
 | Monitoring Mesin (kartu langsung per mesin: nilai, tren, jalan/berhenti, koneksi; auto-refresh 15 dtk) | ✅ aturan diuji (unit) dan query dijalankan di Postgres; belum dilihat dengan data perangkat nyata |
+| Perangkat ESP32: pendaftaran dari web (buat sensor + API key per perangkat + config.h otomatis), heartbeat status (Wi-Fi, uptime, antrean, firmware) | ✅ aturan dan SQL diuji; firmware dikompilasi + dijalankan dengan perangkat tiruan; **belum diuji dengan ESP32 asli** |
 | API NestJS dan Web Next.js (semua modul) | 🟡 lolos kompilasi + build di CI; **belum pernah dijalankan end-to-end** dan belum dilihat di browser sungguhan |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
 | Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |

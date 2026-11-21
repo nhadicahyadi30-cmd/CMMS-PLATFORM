@@ -5,6 +5,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { bootstrap, getUser, logout, User } from '@/lib/api';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
+import HelpButton from './HelpButton';
 
 type Icon = string; // path data, gaya garis 24x24
 const I: Record<string, Icon> = {
@@ -116,6 +117,7 @@ export default function Shell({ children }: { children: ReactNode }) {
       </div>
       {open && <div className="fixed inset-0 z-40 lg:hidden"><div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} /><div className="absolute inset-y-0 left-0 shadow-2xl">{side}</div></div>}
       <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>
+      <HelpButton />
     </div>
   );
 }

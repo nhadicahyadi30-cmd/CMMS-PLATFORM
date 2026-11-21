@@ -39,7 +39,7 @@ const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group
   { m: 8, href: '/rca', label: 'RCA & Failure', icon: 'rca', group: 'Analitik' },
   { m: 1, href: '/monitoring', label: 'Monitoring Mesin', icon: 'mon', group: 'Analitik' },
   { m: 1, href: '/predictions', label: 'Dashboard Prediksi', icon: 'pred', group: 'Analitik' },
-  { m: 1, href: '/devices', label: 'Perangkat ESP32', icon: 'dev', group: 'Analitik' },
+  { m: 1, href: '/devices', label: 'Perangkat RTU', icon: 'dev', group: 'Analitik' },
   { m: 1, href: '/telemetry', label: 'Telemetri (Sensor & Kunci)', icon: 'tel', group: 'Analitik' },
   { m: 7, href: '/energy', label: 'Electrical & Utility', icon: 'energy', group: 'Analitik' },
   { m: 5, href: '/ai', label: 'AI Assistant', icon: 'ai', group: 'Analitik' },

@@ -53,7 +53,7 @@ export default function MonitoringPage() {
   const Card = ({ label, v, cls = '' }: { label: string; v: number | undefined; cls?: string }) => <div className="card"><div className="text-xs text-slate-500">{label}</div><div className={`text-2xl font-semibold ${cls}`}>{v ?? '-'}</div></div>;
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Monitoring Mesin</h1><p className="text-sm text-slate-600">Kondisi mesin secara langsung dari ESP32/Node-RED: nilai sensor, status jalan/berhenti, dan koneksi. Diperbarui otomatis tiap 15 detik. Untuk perkiraan ke depan lihat <Link href="/predictions" className="text-blue-700 underline">Dashboard Prediksi</Link>.</p></div>
+      <div><h1 className="text-xl font-semibold">Monitoring Mesin</h1><p className="text-sm text-slate-600">Kondisi mesin secara langsung dari perangkat RTU/Node-RED: nilai sensor, status jalan/berhenti, dan koneksi. Diperbarui otomatis tiap 15 detik. Untuk perkiraan ke depan lihat <Link href="/predictions" className="text-blue-700 underline">Dashboard Prediksi</Link>.</p></div>
       {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{String(error)}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Card label="Mesin terpantau" v={s?.assets} /><Card label="Online" v={s?.online} cls="text-emerald-700" /><Card label="Offline" v={s?.offline} cls="text-slate-600" />

@@ -31,7 +31,7 @@ export default function DevicesPage() {
   }
   async function rotate(d: Dev) {
     if (!server) { setErr('Isi "Alamat server" di formulir dulu, karena dipakai untuk config.h baru.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    if (!confirm(`Buat kunci baru untuk ${d.name}? Kunci lama langsung dicabut dan ESP32 harus di-flash ulang.`)) return;
+    if (!confirm(`Buat kunci baru untuk ${d.name}? Kunci lama langsung dicabut dan perangkat harus di-flash ulang.`)) return;
     setErr(''); try { setRes(await api<Created>(`/telemetry/devices/${d.id}/rotate-key`, { method: 'POST', body: { serverUrl: server, demo } })); devs.reload(); window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (x) { setErr(msg(x)); }
   }
   async function remove(d: Dev) {
@@ -44,24 +44,24 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Perangkat ESP32</h1><p className="text-sm text-slate-600">Daftarkan ESP32 ke mesin, dapatkan file <code>config.h</code> siap flash, lalu pantau status koneksinya. Setiap perangkat punya API key sendiri yang terbatas pada plant mesinnya. Panduan pemasangan: <code>docs/ESP32.md</code>.</p></div>
+      <div><h1 className="text-xl font-semibold">Perangkat RTU</h1><p className="text-sm text-slate-600">Daftarkan perangkat RTU ke mesin, dapatkan file <code>config.h</code> siap flash, lalu pantau status koneksinya. Setiap perangkat punya API key sendiri yang terbatas pada plant mesinnya. Panduan pemasangan: <code>docs/ESP32.md</code>.</p></div>
       {err && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{err}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Card l="Terdaftar" v={list.filter((d) => d.active).length} /><Card l="Online" v={count('online')} c="text-emerald-700" /><Card l="Menunggu data pertama" v={count('waiting')} c="text-blue-700" /><Card l="Offline / tertunda" v={count('offline') + count('delayed')} c="text-amber-700" /></div>
 
       {isAdmin && (
         <form onSubmit={create} className="card space-y-3">
-          <h2 className="font-medium">Daftarkan ESP32 baru</h2>
+          <h2 className="font-medium">Daftarkan perangkat RTU baru</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs text-slate-600">Mesin (aset)<select className="input mt-1" required value={assetId} onChange={(e) => setAssetId(e.target.value)}><option value="">Pilih aset…</option>{assets.data?.items.map((a) => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></label>
             <label className="text-xs text-slate-600">Nama perangkat<input className="input mt-1" required minLength={2} placeholder="ESP Pompa 203" value={name} onChange={(e) => setName(e.target.value)} /></label>
-            <label className="text-xs text-slate-600">Alamat server (yang dijangkau ESP32)<input className="input mt-1" required placeholder="http://192.168.1.50" value={server} onChange={(e) => setServer(e.target.value)} /></label>
+            <label className="text-xs text-slate-600">Alamat server (yang dijangkau perangkat RTU)<input className="input mt-1" required placeholder="http://192.168.1.50" value={server} onChange={(e) => setServer(e.target.value)} /></label>
           </div>
           <fieldset className="flex flex-wrap gap-4 text-sm"><legend className="mb-1 text-xs text-slate-600">Sensor terpasang (running hour selalu ikut)</legend>
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.oilTemp} onChange={(e) => setS({ ...s, oilTemp: e.target.checked })} />Suhu oli (DS18B20)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.current} onChange={(e) => setS({ ...s, current: e.target.checked })} />Arus motor (SCT-013)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={s.vibration} onChange={(e) => setS({ ...s, vibration: e.target.checked })} />Getaran (MPU6050)</label></fieldset>
           <label className="flex items-start gap-2 rounded bg-blue-50 p-2 text-sm text-blue-900"><input type="checkbox" className="mt-1" checked={demo} onChange={(e) => setDemo(e.target.checked)} /><span><b>Mode demo (data dummy)</b>: ESP32 mengirim data buatan tanpa sensor (suhu oli naik pelan, arus, getaran, mesin &quot;jalan&quot;), supaya dashboard bisa dicoba. Pakai aset uji, karena data dummy akan bercampur dengan data asli di aset yang sama. Untuk beralih ke sensor sungguhan: ubah <code>DEMO_MODE</code> menjadi 0 di <code>config.h</code> lalu upload ulang.</span></label>
-          <p className="text-xs text-slate-500">Alamat server harus IP/nama yang bisa dibuka dari jaringan ESP32, bukan <code>localhost</code>. Di Windows: jalankan <code>ipconfig</code> dan pakai &quot;IPv4 Address&quot; laptop/server. Pastikan firewall mengizinkan port 80.</p>
+          <p className="text-xs text-slate-500">Alamat server harus IP/nama yang bisa dibuka dari jaringan perangkat RTU, bukan <code>localhost</code>. Di Windows: jalankan <code>ipconfig</code> dan pakai &quot;IPv4 Address&quot; laptop/server. Pastikan firewall mengizinkan port 80.</p>
           <button className="btn" disabled={busy}>{busy ? 'Membuat…' : 'Daftarkan & buat config.h'}</button>
         </form>)}
 
@@ -87,9 +87,9 @@ export default function DevicesPage() {
               <td>{ago(d.lastSeen)}</td><td>{d.rssi == null ? '-' : `${d.rssi} dBm`}<div className="text-xs text-slate-500">{SIG[d.signal]}</div></td><td>{up(d.uptimeS)}<div className="text-xs text-slate-500">{d.boots != null ? `boot #${d.boots}` : ''}</div></td>
               <td className={d.queue && d.queue > 20 ? 'text-amber-700' : ''}>{d.queue ?? '-'}</td><td>{d.fw ?? '-'}</td><td>{Number(d.readingsTotal).toLocaleString('id-ID')}</td>
               <td className="whitespace-nowrap p-2 text-right">{isAdmin && d.active && <><button className="text-xs text-blue-700 hover:underline" onClick={() => rotate(d)}>Kunci baru</button> <button className="ml-2 text-xs text-red-600 hover:underline" onClick={() => remove(d)}>Nonaktifkan</button></>}</td></tr>))}
-            {devs.data && !list.length && <tr><td colSpan={10} className="p-4 text-center text-slate-500">{isAdmin ? 'Belum ada perangkat. Daftarkan ESP32 pertama di atas.' : 'Belum ada perangkat terdaftar. Minta Administrator mendaftarkannya.'}</td></tr>}</tbody></table>
+            {devs.data && !list.length && <tr><td colSpan={10} className="p-4 text-center text-slate-500">{isAdmin ? 'Belum ada perangkat. Daftarkan perangkat RTU pertama di atas.' : 'Belum ada perangkat terdaftar. Minta Administrator mendaftarkannya.'}</td></tr>}</tbody></table>
       </section>
-      <p className="text-xs text-slate-500">Online = data masuk ≤ 3 menit. Antrean &gt; 20 berarti ESP32 menumpuk data (Wi-Fi/server bermasalah) dan baru dikirim saat tersambung. Wi-Fi: kuat ≥ −60 dBm, cukup −60…−75, lemah &lt; −75.</p>
+      <p className="text-xs text-slate-500">Online = data masuk ≤ 3 menit. Antrean &gt; 20 berarti perangkat menumpuk data (Wi-Fi/server bermasalah) dan baru dikirim saat tersambung. Wi-Fi: kuat ≥ −60 dBm, cukup −60…−75, lemah &lt; −75.</p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-# Memasang ESP32 di mesin (suhu oli, arus, getaran, running hour)
+# Memasang perangkat RTU (ESP32) di mesin (suhu oli, arus, getaran, running hour)
 
 Panduan ini untuk satu **node ESP32** per mesin. Node membaca sensor, menghitung **running hour** sendiri (tahan mati listrik), lalu mengirim data ke MaintHub lewat Wi-Fi. Data muncul di *Telemetri Mesin* dan dianalisis di *Dashboard Prediksi*.
 

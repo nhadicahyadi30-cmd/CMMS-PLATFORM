@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { getUser } from '@/lib/api';
+import FactoryScene from '@/components/FactoryScene';
 
 type Tile = { href: string; title: string; hint: string; m: number; main?: boolean };
 
@@ -27,19 +28,31 @@ export default function Home() {
   if (!u) return null;
   const tiles = (TILES[u.role] ?? [{ href: '/work-orders', title: 'Work Order', hint: 'Daftar semua pekerjaan', m: 3, main: true }]).filter((t) => u.modules.includes(t.m));
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold">Halo, {u.name.split(' ')[0]}</h1>
-        <p className="text-sm text-slate-600">Pilih apa yang mau dikerjakan.</p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1>Halo, {u.name.split(' ')[0]}</h1>
+          <p className="mt-3 text-sm text-slate-700">Pilih apa yang mau dikerjakan.</p>
+        </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {tiles.map((t) => (
-          <Link key={t.href} href={t.href}
-            className={`flex min-h-24 flex-col justify-center rounded-2xl border p-4 transition ${t.main ? 'border-blue-600 bg-blue-600 text-white shadow-md hover:bg-blue-700 sm:col-span-2 lg:col-span-1' : 'border-slate-200 bg-white text-slate-900 hover:border-blue-400 hover:shadow'}`}>
-            <span className="text-lg font-semibold">{t.title}</span>
-            <span className={`mt-0.5 text-sm ${t.main ? 'text-blue-100' : 'text-slate-600'}`}>{t.hint}</span>
-          </Link>
-        ))}
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-start">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {tiles.map((t, i) => (
+            <Link key={t.href} href={t.href}
+              className={`group relative flex min-h-28 flex-col justify-between rounded-xl border-[1.5px] p-4 transition hover:-translate-y-0.5 ${t.main ? 'border-ink-900 bg-ink-900 text-white sm:col-span-2' : 'border-stone-300 bg-white text-ink-900 hover:border-ink-900'}`}
+              style={{ boxShadow: t.main ? '0 4px 0 #ffc93c' : '0 3px 0 rgba(16,27,51,.12)' }}>
+              <span className={`text-xs font-bold tracking-widest ${t.main ? 'text-yellow-300' : 'text-slate-500'}`}>{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span className="block text-xl font-bold leading-tight" style={{ fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif", textTransform: 'uppercase' }}>{t.title} <span aria-hidden="true" className={`inline-block transition group-hover:translate-x-1 ${t.main ? 'text-yellow-300' : 'text-blue-700'}`}>→</span></span>
+                <span className={`mt-0.5 block text-sm ${t.main ? 'text-slate-300' : 'text-slate-600'}`}>{t.hint}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+        <div className="hidden overflow-hidden rounded-xl border-[1.5px] border-ink-900 bg-ink-900 lg:block" style={{ boxShadow: '0 4px 0 rgba(16,27,51,.25)' }}>
+          <div className="stripe-bar" aria-hidden="true" />
+          <FactoryScene className="w-full" />
+        </div>
       </div>
     </div>
   );

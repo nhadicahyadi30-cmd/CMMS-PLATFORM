@@ -6,9 +6,11 @@ body { @apply bg-slate-100 font-sans text-slate-900; background-image: radial-gr
 h1 { @apply tracking-tight; }
 :focus-visible { @apply outline-none ring-2 ring-blue-500 ring-offset-1; }
 
-.btn { @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition hover:from-blue-600 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50; }
-.btn-ghost { @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50; }
-.input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/25; }
+.btn { @apply inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50; box-shadow: 0 2px 0 #12376f; }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 0 0 #12376f; }
+.btn-ghost { @apply inline-flex items-center justify-center rounded-lg border-[1.5px] border-ink-900/25 bg-white px-4 py-1.5 text-sm font-semibold text-ink-900 transition hover:border-ink-900 disabled:cursor-not-allowed disabled:opacity-50; box-shadow: 0 2px 0 rgba(16,27,51,.12); }
+.btn-ghost:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+.input { @apply w-full rounded-lg border-[1.5px] border-stone-400/70 bg-white px-3 py-1.5 text-sm placeholder:text-stone-400 transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/25; }
 /* Navigasi samping: scrollbar tipis */
 .nav-scroll { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
 /* Layar sentuh (HP/tablet, sarung tangan): target sentuh minimal 44px */
@@ -17,7 +19,8 @@ h1 { @apply tracking-tight; }
   .input, select.input { min-height: 44px; font-size: 16px; }
   th, td { padding-top: .55rem; padding-bottom: .55rem; }
 }
-.card { @apply rounded-xl border border-slate-200/80 bg-white p-4 shadow-card; }
+/* Kartu: kertas putih bertepi tegas dengan bayangan tumpuk, bukan bayangan kabur */
+.card { @apply rounded-xl border border-stone-300/80 bg-white p-4; box-shadow: 0 2px 0 rgba(16,27,51,.07); }
 table { @apply w-full; }
 th { @apply text-xs font-medium uppercase tracking-wide text-slate-500; }
 
@@ -58,3 +61,16 @@ html.snap-site { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 .mh-logo:hover .f-left, a:hover .mh-logo .f-left { transform: translate(-6px, 4px); }
 .mh-logo:hover .f-right, a:hover .mh-logo .f-right { transform: translate(6px, 4px); }
 .mh-logo:hover .mh-wave, a:hover .mh-logo .mh-wave { animation-duration: .9s; }
+
+/* ===== Kulit aplikasi (setelah login): kertas teknik, tipografi pabrik, tabel tegas ===== */
+.app-root { background-color: #f2efe7; background-image: linear-gradient(rgba(16,27,51,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(16,27,51,.035) 1px, transparent 1px); background-size: 32px 32px; }
+.app-root, .app-root input, .app-root select, .app-root textarea, .app-root button { font-family: 'Barlow', Inter, 'Segoe UI', system-ui, sans-serif; }
+.app-main h1 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 800; font-size: 1.9rem; line-height: 1.05; text-transform: uppercase; letter-spacing: .01em; color: #101b33; }
+.app-main h1::after { content: ''; display: block; width: 52px; height: 7px; margin-top: .5rem; border-radius: 1px; background: repeating-linear-gradient(-45deg, #101b33 0 5px, #ffc93c 5px 10px); }
+.app-main h2 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 700; letter-spacing: .02em; }
+.app-main table thead { background: #101b33; }
+.app-main table thead th { color: #d9dee9; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .85rem; font-weight: 700; letter-spacing: .08em; padding-top: .6rem; padding-bottom: .6rem; }
+.app-main table tbody tr:nth-child(even) { background: rgba(242,239,231,.55); }
+.app-main table tbody tr:hover { background: #fff4cc; }
+.app-main .card.overflow-x-auto { box-shadow: 0 3px 0 rgba(16,27,51,.12); }
+.stripe-bar { height: 8px; background: repeating-linear-gradient(-45deg, #101b33 0 8px, #ffc93c 8px 16px); }

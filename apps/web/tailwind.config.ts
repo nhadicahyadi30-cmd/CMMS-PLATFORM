@@ -5,7 +5,7 @@ export default {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'Segoe UI', 'system-ui', '-apple-system', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'] },
+      fontFamily: { display: ['Barlow Condensed', 'Arial Narrow', 'sans-serif'], sans: ['Inter', 'Segoe UI', 'system-ui', '-apple-system', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'] },
       colors: {
         teal: { 300: '#5fe0d2', 400: '#12c4b4', 500: '#0fa89a', 600: '#0c8a7f' },
         ink: { 950: '#070d1a', 900: '#0b1426', 800: '#111d35', 700: '#1b2a47' },

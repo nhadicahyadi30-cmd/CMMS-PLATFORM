@@ -3,9 +3,10 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser, login } from '@/lib/api';
 import Link from 'next/link';
-import Logo, { TAGLINE_WORDS } from '@/components/Logo';
+import Logo from '@/components/Logo';
+import FactoryScene from '@/components/FactoryScene';
 
-const POINTS = ['Work Order, Preventive, dan Spare Parts dalam satu platform', 'KPI reliability dihitung langsung dari data lapangan', 'AI Assistant yang menjawab dari manual dan riwayat perbaikan Anda'];
+const POINTS = ['Lapor kerusakan dan pantau perbaikannya sampai selesai', 'Izin kerja dan LOTO yang tidak bisa dilewati', 'Checklist dan inspeksi tetap jalan tanpa sinyal'];
 
 export default function Login() {
   const r = useRouter();
@@ -16,30 +17,42 @@ export default function Login() {
     try { await login(String(f.get('org')), String(f.get('username')), String(f.get('password'))); { const nx = new URLSearchParams(window.location.search).get('next'); r.replace(nx && /^\/(?!\/)/.test(nx) && !nx.startsWith('/login') ? nx : (['technician', 'production'].includes(getUser()?.role ?? '') ? '/home' : '/work-orders')); } }
     catch (x: any) { setErr(x.message); } finally { setBusy(false); }
   }
+  const fld = 'mt-1 w-full rounded-lg border-[1.5px] border-stone-400/70 bg-white px-3 py-2.5 text-base text-ink-900 placeholder:text-stone-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/25';
   return (
-    <main className="auth-bg relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      <div className="auth-grid pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="relative z-10 grid w-full max-w-5xl items-center gap-12 lg:grid-cols-2">
-        <section className="hidden text-white lg:block">
-          <Link href="/" aria-label="Ke beranda"><Logo size={60} dark /></Link>
-          <h1 className="mt-10 text-5xl font-semibold leading-[1.08] tracking-tight">{TAGLINE_WORDS.map((w, i) => <span key={w} className={`block ${i === 0 ? '' : i === 1 ? 'text-blue-400' : i === 2 ? 'text-teal-300' : 'text-teal-400'}`}>{w}</span>)}</h1>
-          <ul className="mt-8 space-y-3 text-sm text-slate-300">
-            {POINTS.map((p) => <li key={p} className="flex gap-3"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-400" />{p}</li>)}
-          </ul>
-        </section>
-        <form onSubmit={submit} className="mx-auto w-full max-w-sm space-y-4 rounded-2xl border border-white/10 bg-white/[0.07] p-7 shadow-2xl backdrop-blur-xl">
-          <div className="lg:hidden"><Link href="/"><Logo size={44} dark /></Link></div>
-          <div><h2 className="text-lg font-semibold text-white">Sign in to MaintHub</h2><p className="text-sm text-slate-400">Gunakan akun yang diberikan administrator.</p></div>
-          {[['org', 'Organization', 'organization', 'text'], ['username', 'Username', 'username', 'text'], ['password', 'Password', 'current-password', 'password']].map(([n, l, a, t]) => (
-            <label key={n} className="block text-sm text-slate-300">{l}
-              <input name={n} type={t} required autoComplete={a} className="mt-1 w-full rounded-lg border border-white/15 bg-ink-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" />
+    <main className="grid min-h-screen lg:grid-cols-[1.15fr_1fr]" style={{ fontFamily: "'Barlow', Inter, system-ui, sans-serif" }}>
+      <section className="relative hidden flex-col overflow-hidden bg-ink-900 text-white lg:flex">
+        <div className="stripe-bar" aria-hidden="true" />
+        <div className="flex flex-1 flex-col justify-between p-10 xl:p-14">
+          <Link href="/" aria-label="Ke beranda"><Logo size={44} dark /></Link>
+          <div>
+            <h1 className="uppercase leading-[0.95]" style={{ fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif", fontWeight: 800, fontSize: 'clamp(3rem, 5vw, 4.6rem)' }}>
+              Rawat mesin.<br /><span className="bg-yellow-400 px-2 text-ink-900" style={{ marginLeft: '-0.5rem' }}>Jaga keselamatan.</span><br />Catat semuanya.
+            </h1>
+            <ul className="mt-6 max-w-md space-y-2 text-[0.95rem] text-slate-300">
+              {POINTS.map((t) => <li key={t} className="flex gap-3"><span className="mt-2 h-1.5 w-3 shrink-0 bg-yellow-400" aria-hidden="true" />{t}</li>)}
+            </ul>
+          </div>
+          <FactoryScene className="-mb-6 -mr-10 w-[112%] max-w-none" />
+        </div>
+      </section>
+      <section className="flex flex-col justify-center bg-[#f2efe7] px-5 py-10 sm:px-10">
+        <Link href="/" className="mb-8 text-sm font-medium text-slate-600 hover:text-ink-900 lg:hidden">← Beranda</Link>
+        <form onSubmit={submit} className="mx-auto w-full max-w-sm space-y-4">
+          <div className="lg:hidden"><Logo size={40} dark={false} /></div>
+          <div>
+            <h2 className="uppercase text-ink-900" style={{ fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif", fontWeight: 800, fontSize: '2rem', lineHeight: 1 }}>Masuk</h2>
+            <p className="mt-1 text-sm text-slate-600">Gunakan akun yang diberikan administrator perusahaan Anda.</p>
+          </div>
+          {[['org', 'Organisasi', 'organization', 'text'], ['username', 'Nama pengguna', 'username', 'text'], ['password', 'Kata sandi', 'current-password', 'password']].map(([n, l, a, t]) => (
+            <label key={n} className="block text-sm font-semibold text-ink-900">{l}
+              <input name={n} type={t} required autoComplete={a} className={fld} />
             </label>
           ))}
-          {err && <p role="alert" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</p>}
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-teal-400 py-2.5 text-sm font-semibold text-ink-950 shadow-glow transition hover:brightness-110 disabled:opacity-60" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</button>
+          {err && <p role="alert" className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">{err}</p>}
+          <button className="btn w-full !py-3 text-base" disabled={busy}>{busy ? 'Memproses…' : 'Masuk'}</button>
+          <p className="text-xs text-slate-500">Lupa kata sandi? Hubungi administrator organisasi Anda.</p>
         </form>
-      </div>
-      <Link href="/" className="absolute left-5 top-5 z-10 text-sm text-slate-400 hover:text-white">← Home</Link>
+      </section>
     </main>
   );
 }

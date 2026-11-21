@@ -5,5 +5,5 @@ const COLORS: Record<string, string> = {
 };
 const LABEL: Record<string, string> = { waiting: 'Menunggu approval', approved: 'Disetujui', assigned: 'Ditugaskan', progress: 'Dikerjakan', done: 'Selesai', closed: 'Ditutup', rejected: 'Ditolak' };
 export default function Badge({ v }: { v: string }) {
-  return <span className={`whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium ${COLORS[v] ?? 'bg-slate-100'}`}>{LABEL[v] ?? v}</span>;
+  return <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-semibold ${COLORS[v] ?? 'bg-slate-100'}`}><span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{LABEL[v] ?? v}</span>;
 }

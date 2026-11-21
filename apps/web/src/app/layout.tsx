@@ -11,5 +11,14 @@ export const metadata = {
 };
 export const viewport: Viewport = { themeColor: '#070d1a', width: 'device-width', initialScale: 1 };
 export default function Root({ children }: { children: ReactNode }) {
-  return <html lang="id"><body>{children}<PwaRegister /></body></html>;
+  return (
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" />
+      </head>
+      <body>{children}<PwaRegister /></body>
+    </html>
+  );
 }

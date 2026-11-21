@@ -83,6 +83,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   const side = (
     <aside className="flex h-full w-64 flex-col bg-ink-900 text-slate-300">
+      <div className="stripe-bar" aria-hidden="true" />
       <div className="border-b border-white/5 px-5 py-5"><Link href="/work-orders" aria-label="MaintHub beranda"><Logo size={40} tagline /></Link></div>
       <nav className="nav-scroll flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm" aria-label="Navigasi utama">
         {groups.map((g) => (
@@ -93,9 +94,9 @@ export default function Shell({ children }: { children: ReactNode }) {
                 const on = path.startsWith(n.href);
                 return (
                   <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined}
-                    className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition ${on ? 'bg-white/10 font-medium text-white' : 'hover:bg-white/5 hover:text-white'}`}>
-                    {on && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gradient-to-b from-blue-400 to-teal-400" />}
-                    <span className={on ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}><NavIcon d={I[n.icon]} /></span>
+                    className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition ${on ? 'bg-white/10 font-semibold text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+                    {on && <span className="absolute inset-y-1 left-0 w-1 rounded-sm bg-yellow-400" />}
+                    <span className={on ? 'text-yellow-300' : 'text-slate-500 group-hover:text-slate-300'}><NavIcon d={I[n.icon]} /></span>
                     {n.label}
                   </Link>
                 );
@@ -118,7 +119,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="app-root min-h-screen lg:flex">
       <div className="hidden shrink-0 lg:block print:hidden"><div className="sticky top-0 h-screen">{side}</div></div>
       <div className="sticky top-0 z-30 flex items-center justify-between bg-ink-900 px-4 py-3 lg:hidden print:hidden">
         <Logo size={30} />
@@ -128,13 +129,13 @@ export default function Shell({ children }: { children: ReactNode }) {
         </button></div>
       </div>
       {open && <div className="fixed inset-0 z-40 lg:hidden"><div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} /><div className="absolute inset-y-0 left-0 shadow-2xl">{side}</div></div>}
-      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 sm:pb-24 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>
+      <main className="app-main min-w-0 flex-1 p-4 pb-24 sm:p-6 sm:pb-24 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-ink-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden" aria-label="Pintasan">
         <div className="mx-auto grid max-w-xl grid-cols-5">
           {quick.map((n) => {
             const on = path.startsWith(n.href);
             return (
-              <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-medium ${on ? 'text-teal-300' : 'text-slate-400'}`}>
+              <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-medium ${on ? 'text-yellow-300' : 'text-slate-400'}`}>
                 <NavIcon d={I[n.icon]} /><span className="max-w-full truncate">{n.label.replace('Inspeksi & Checklist', 'Inspeksi').replace('Izin Kerja (PTW)', 'Izin Kerja')}</span>
               </Link>
             );

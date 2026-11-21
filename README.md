@@ -21,6 +21,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Notifikasi (bel: WO baru, PM jatuh tempo, penugasan, alarm), Label QR aset + pemindai + lapor dari HP, PWA (dapat dipasang, halaman offline) | 🟡 pemicu notifikasi + SQL diuji (`db/tests/notifications.sql`); halaman web baru lolos cek sintaks; **belum dijalankan di browser/HP, pustaka `qrcode`/`jsqr` belum terpasang di sandbox ini (terpasang saat build Docker)**; push saat aplikasi tertutup belum ada; lihat docs/NOTIFIKASI_QR_PWA.md |
 | Perangkat RTU lewat **MQTT** + banyak perangkat + konfigurasi tanpa flash ulang (portal Wi-Fi/kode konfigurasi), Mosquitto + Node-RED di Docker (`--profile iot`) | 🟡 pembaca kode konfigurasi (C++), pembuat kode (API), fungsi flow Node-RED, dan sintaks firmware diuji di komputer; **belum diuji di ESP32 asli, broker Docker, dan HP**; lihat docs/MQTT_RTU.md |
 | Power meter per area (Modbus via Node-RED/gateway) -> kWh harian otomatis di Electrical & Utility | 🟡 perhitungan harian di DB (`db/tests/meters.sql`), validasi API, dan decode Node-RED diuji; **belum diuji dengan meter/gateway nyata dan server berjalan**; lihat docs/POWER_METER.md |
+| Inspeksi & Checklist, Izin Kerja (PTW) + LOTO, peran **Produksi**, hak akses per peran (menu Admin → Hak akses), **Mode Lapangan offline** (`/field`) | 🟡 DB diuji (`db/tests/safety.sql`), aturan diuji unit (7 tes), alur API diuji dengan harness terhadap Postgres sungguhan; **build Nest/Next belum dijalankan, belum dicoba di browser/HP; perilaku offline (service worker, IndexedDB, sinkron) belum diuji di perangkat nyata**; lihat docs/SAFETY_INSPECTION.md |
 | Data demo 2 plant (PA, PB) lengkap untuk semua menu, bisa dipasang/dihapus dengan script | 🟡 diuji pada database kosong (pasang → hapus → pasang ulang); **belum diuji di database laptop dan tampilan peramban**; lihat docs/DATA_DEMO.md |
 | API NestJS dan Web Next.js (semua modul) | 🟡 lolos kompilasi + build di CI; **belum pernah dijalankan end-to-end** dan belum dilihat di browser sungguhan |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
@@ -51,7 +52,7 @@ docker compose run --rm -e OWNER_DATABASE_URL="postgres://$POSTGRES_USER:$POSTGR
 ```
 Lupa password / login ditolak? Atur ulang (PowerShell; ganti `PasswordBaru123` dan daftar pengguna):
 ```powershell
-docker compose run --rm -e OWNER_DATABASE_URL="postgres://maintainhub_owner:PASSWORD_DB@db:5432/maintainhub" -e RESET_PASSWORD="PasswordBaru123" api node dist/cli/reset-password.js --org demo --users admin,spv.pa,plan.pa,tek.pa1,spv.pb,plan.pb,tek.pb1
+docker compose run --rm -e OWNER_DATABASE_URL="postgres://maintainhub_owner:PASSWORD_DB@db:5432/maintainhub" -e RESET_PASSWORD="PasswordBaru123" api node dist/cli/reset-password.js --org demo --users admin,spv.pa,plan.pa,tek.pa1,prd.pa,spv.pb,plan.pb,tek.pb1,prd.pb
 ```
 Login di web dengan organisasi `nama-perusahaan` dan username tersebut, lalu kelola pengguna, teknisi, dan plant di menu Administrasi.
 

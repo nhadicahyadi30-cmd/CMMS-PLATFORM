@@ -45,8 +45,8 @@ export class WorkOrdersController {
       if (f.status) { args.push(f.status.split(',')); where.push(`w.status = any($${args.length})`); }
       if (f.plantId) { args.push(f.plantId); where.push(`w.plant_id = $${args.length}`); }
       if (f.assetId) { args.push(f.assetId); where.push(`w.asset_id = $${args.length}`); }
-      // teknisi hanya melihat WO yang ditugaskan kepadanya atau dibuatnya sendiri
-      if (u.role === 'technician' || f.mine) {
+      // teknisi dan Produksi hanya melihat WO yang ditugaskan kepadanya atau dibuatnya sendiri
+      if (u.role === 'technician' || u.role === 'production' || f.mine) {
         args.push(await this.myTech(c, u)); where.push(`(w.technician_id = $${args.length}`);
         args.push(u.sub); where[where.length - 1] += ` or w.requester_id = $${args.length})`;
       }
@@ -62,6 +62,10 @@ export class WorkOrdersController {
     return this.db.tx(dbCtx(req.user), async (c) => {
       const r = await c.query(`select ${COLS} ${FROM} where w.id = $1`, [id]);
       if (!r.rows[0]) throw new HttpException('WO tidak ditemukan', HttpStatus.NOT_FOUND);
+      if (req.user.role === 'production') {   // Produksi hanya melihat permintaan buatannya sendiri
+        const own = await c.query('select 1 from work_orders where id = $1 and requester_id = $2', [id, req.user.sub]);
+        if (!own.rowCount) throw new HttpException('WO tidak ditemukan', HttpStatus.NOT_FOUND);
+      }
       const logs = await c.query('select at, actor_text as actor, text from wo_logs where wo_id = $1 order by at, id', [id]);
       const att = await c.query('select id, kind, filename, mime, size_bytes as "sizeBytes", via, created_at as "createdAt" from wo_attachments where wo_id = $1 order by created_at', [id]);
       const parts = await c.query(
@@ -76,6 +80,7 @@ export class WorkOrdersController {
   @Post()
   async create(@Body() b: unknown, @Req() req: any) {
     const d = parse(CreateDto, b); const u: AuthUser = req.user;
+    if (u.role === 'production' && !['breakdown', 'corrective'].includes(d.woType)) throw new HttpException('Produksi hanya dapat meminta perbaikan (breakdown/corrective)', HttpStatus.FORBIDDEN);
     try {
       return await this.db.tx(dbCtx(u), async (c) => {
         const r = await c.query(

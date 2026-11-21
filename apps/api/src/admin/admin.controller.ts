@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Put, Req } from '@nestjs/common';
 import { z } from 'zod';
 import * as argon2 from 'argon2';
 import { PoolClient } from 'pg';
@@ -8,7 +8,13 @@ import { mapDbError, parse } from '../common/http';
 import { normalizePhone } from '../common/phone';
 export { normalizePhone };
 
-const ROLE = z.enum(['admin', 'supervisor', 'planner', 'technician']);
+export const MODULES = [
+  { n: 1, name: 'Aset, Monitoring & Telemetri' }, { n: 2, name: 'Preventive Maintenance' }, { n: 3, name: 'Work Order' }, { n: 4, name: 'Cadangan' },
+  { n: 5, name: 'AI Assistant' }, { n: 6, name: 'Sparepart & Inventory' }, { n: 7, name: 'Electrical & Utility' }, { n: 8, name: 'RCA & Failure' },
+  { n: 9, name: 'KPI & Reports' }, { n: 10, name: 'Administrasi (hanya Admin)' }, { n: 11, name: 'Inspeksi & Checklist' }, { n: 12, name: 'Izin Kerja (PTW) & LOTO' },
+];
+const PermDto = z.object({ modules: z.array(z.number().int().min(1).max(12)).max(12) });
+const ROLE = z.enum(['admin', 'supervisor', 'planner', 'technician', 'production']);
 const PASSWORD = z.string().min(10, 'Password minimal 10 karakter').max(128);
 const UserCreate = z.object({
   username: z.string().regex(/^[a-z0-9._-]{3,40}$/, 'Username 3–40 karakter: huruf kecil, angka, titik, minus, garis bawah'),
@@ -131,6 +137,34 @@ export class AdminController {
       await this.audit(c, req.user, 'user_unlock', 'user', id);
       return { ok: true };
     });
+  }
+
+  // ---------- hak akses per peran ----------
+  @Get('permissions')
+  permissions(@Req() req: any) {
+    return this.db.tx(dbCtx(req.user), async (c) => {
+      const r = await c.query('select role_code, module from role_modules order by module');
+      const roles = (await c.query('select code, name from roles order by case code when \'admin\' then 1 when \'supervisor\' then 2 when \'planner\' then 3 when \'technician\' then 4 else 5 end')).rows;
+      return {
+        modules: MODULES,
+        roles: roles.map((x: any) => ({ code: x.code, name: x.name, fixed: x.code === 'admin', modules: r.rows.filter((m: any) => m.role_code === x.code).map((m: any) => Number(m.module)) })),
+      };
+    });
+  }
+
+  @Put('permissions/:role')
+  async setPermissions(@Param('role') role: string, @Body() b: unknown, @Req() req: any) {
+    const r = parse(ROLE, role); const d = parse(PermDto, b);
+    if (r === 'admin') throw new HttpException('Hak akses Admin tidak dapat diubah', HttpStatus.UNPROCESSABLE_ENTITY);
+    const mods = [...new Set<number>(d.modules)].filter((n) => n !== 10).sort((a, b2) => a - b2);   // Administrasi hanya untuk Admin
+    try {
+      return await this.db.tx(dbCtx(req.user), async (c) => {
+        await c.query('delete from role_modules where role_code = $1', [r]);
+        if (mods.length) await c.query('insert into role_modules (org_id, role_code, module) select $1, $2, unnest($3::smallint[])', [req.user.org, r, mods]);
+        await this.audit(c, req.user, 'permissions_update', 'role', r, { modules: mods });
+        return { role: r, modules: mods };
+      });
+    } catch (e) { mapDbError(e); }
   }
 
   // ---------- plant ----------

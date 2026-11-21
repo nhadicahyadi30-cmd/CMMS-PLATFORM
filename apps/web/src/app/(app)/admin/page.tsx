@@ -4,8 +4,8 @@ import { api } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import Field from '@/components/Field';
 
-const ROLES = [['admin', 'Admin'], ['supervisor', 'Supervisor'], ['planner', 'Planner'], ['technician', 'Teknisi']];
-type Tab = 'users' | 'techs' | 'plants';
+const ROLES = [['admin', 'Admin'], ['supervisor', 'Supervisor'], ['planner', 'Planner'], ['technician', 'Teknisi'], ['production', 'Produksi']];
+type Tab = 'users' | 'techs' | 'plants' | 'perms';
 
 function useAct(reload: () => void) {
   const [msg, setMsg] = useState('');
@@ -114,6 +114,30 @@ function Techs() {
   );
 }
 
+function Permissions() {
+  const { data, error, reload } = useApi<{ modules: { n: number; name: string }[]; roles: { code: string; name: string; fixed: boolean; modules: number[] }[] }>('/admin/permissions');
+  const [msg, setMsg] = useState('');
+  async function toggle(role: string, mods: number[], n: number) {
+    const next = mods.includes(n) ? mods.filter((x) => x !== n) : [...mods, n];
+    setMsg('');
+    try { await api(`/admin/permissions/${role}`, { method: 'PUT', body: { modules: next } }); setMsg('Tersimpan. Berlaku untuk pengguna peran itu saat mereka masuk ulang atau sesinya diperbarui.'); reload(); } catch (e: any) { setMsg(e.message); }
+  }
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-slate-600">Atur modul apa saja yang boleh dibuka tiap peran. Wewenang tindakan di dalam modul (mis. hanya Supervisor yang menyetujui izin kerja, hanya Produksi yang menyerahkan area) tetap dijaga sistem dan tidak bisa diubah di sini.</p>
+      {(error || msg) && <p className={`text-sm ${error ? 'text-red-600' : 'text-slate-700'}`} role="status">{error || msg}</p>}
+      <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Modul</th>{data?.roles.map((r) => <th key={r.code} className="px-2 text-center">{r.name}</th>)}</tr></thead>
+        <tbody>{data?.modules.filter((m) => m.n !== 4).map((m) => (<tr key={m.n} className="border-t"><td className="p-2">{m.name}</td>
+          {data!.roles.map((r) => (<td key={r.code} className="text-center"><input type="checkbox" aria-label={`${m.name} untuk ${r.name}`} checked={r.fixed || r.modules.includes(m.n)} disabled={r.fixed || m.n === 10} onChange={() => toggle(r.code, r.modules, m.n)} /></td>))}</tr>))}</tbody></table></div>
+      <div className="card text-sm text-slate-600"><div className="mb-1 font-medium text-slate-800">Ringkasan wewenang (tetap)</div>
+        <ul className="list-disc space-y-0.5 pl-5"><li><b>Teknisi</b>: mengerjakan WO yang ditugaskan, mengisi checklist, mengajukan izin kerja, memasang gembok dan memverifikasi nol energi.</li>
+          <li><b>Supervisor</b>: menyetujui/menolak WO dan izin kerja, menutup WO, mengelola template checklist dan titik isolasi.</li>
+          <li><b>Produksi</b>: meminta perbaikan, mengisi checklist operator, menyerahkan dan menerima kembali area pada izin kerja.</li>
+          <li><b>Planner</b>: menjadwalkan dan menugaskan; <b>Admin</b>: semua, termasuk pengguna dan hak akses.</li></ul></div>
+    </div>
+  );
+}
+
 function Plants() {
   const plants = useApi<any[]>('/admin/plants'); const { msg, run } = useAct(plants.reload);
   return (
@@ -132,12 +156,12 @@ function Plants() {
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('users');
-  const T: [Tab, string][] = [['users', 'Pengguna'], ['techs', 'Teknisi'], ['plants', 'Plant']];
+  const T: [Tab, string][] = [['users', 'Pengguna'], ['techs', 'Teknisi'], ['plants', 'Plant'], ['perms', 'Hak akses']];
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Administrasi</h1>
       <div className="flex gap-2">{T.map(([k, l]) => <button key={k} className={tab === k ? 'btn' : 'btn-ghost'} onClick={() => setTab(k)}>{l}</button>)}</div>
-      {tab === 'users' ? <Users /> : tab === 'techs' ? <Techs /> : <Plants />}
+      {tab === 'users' ? <Users /> : tab === 'techs' ? <Techs /> : tab === 'perms' ? <Permissions /> : <Plants />}
     </div>
   );
 }

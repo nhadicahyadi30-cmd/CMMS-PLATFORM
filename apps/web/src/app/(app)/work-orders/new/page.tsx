@@ -1,7 +1,7 @@
 'use client';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import Field from '@/components/Field';
 
@@ -10,7 +10,8 @@ export default function NewWo() {
   const plants = useApi<any[]>('/plants');
   const [plantId, setPlantId] = useState('');
   const assets = useApi<{ items: any[] }>(plantId ? `/assets?plantId=${plantId}&size=200` : null);
-  const skills = useApi<{ id: string; code: string; name: string; active: boolean }[]>('/workforce/skills');
+  const isProd = getUser()?.role === 'production';
+  const skills = useApi<{ id: string; code: string; name: string; active: boolean }[]>(isProd ? null : '/workforce/skills');
   const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -34,19 +35,21 @@ export default function NewWo() {
         <Field label="Aset"><select name="assetId" className="input" required disabled={!plantId}>
           <option value="">Pilih aset…</option>{assets.data?.items.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}</select></Field>
         <Field label="Jenis"><select name="woType" className="input" defaultValue="corrective">
-          <option value="breakdown">Breakdown</option><option value="corrective">Korektif</option><option value="emergency">Darurat</option></select></Field>
+          <option value="breakdown">Breakdown</option><option value="corrective">Korektif</option>{!isProd && <option value="emergency">Darurat</option>}</select></Field>
         <Field label="Prioritas"><select name="priority" className="input" defaultValue="P3">
           <option value="P1">P1 — Kritis</option><option value="P2">P2 — Tinggi</option><option value="P3">P3 — Sedang</option><option value="P4">P4 — Rendah</option></select></Field>
       </div>
       <Field label="Judul"><input name="title" className="input" required minLength={3} maxLength={200} placeholder="Contoh: Mixer 1 bunyi kasar" /></Field>
       <Field label="Deskripsi"><textarea name="description" className="input" rows={4} maxLength={4000} /></Field>
       <Field label="Estimasi jam kerja"><input name="estHours" type="number" step="0.5" min="0" defaultValue={2} className="input max-w-[8rem]" /></Field>
+      {!isProd && (
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Skill yang dibutuhkan (opsional)"><select name="skillId" className="input" defaultValue="">
           <option value="">Tidak ditentukan</option>{skills.data?.filter((k) => k.active).map((k) => <option key={k.id} value={k.id}>{k.code} — {k.name}</option>)}</select></Field>
         <Field label="Level minimum"><select name="skillMinLevel" className="input" defaultValue="2">
           <option value="1">1 — Dasar</option><option value="2">2 — Terbatas</option><option value="3">3 — Mandiri</option><option value="4">4 — Ahli</option></select></Field>
       </div>
+      )}
       {err && <p role="alert" className="text-sm text-red-600">{err}</p>}
       <div className="flex gap-2"><button className="btn" disabled={busy}>{busy ? 'Menyimpan…' : 'Kirim untuk approval'}</button>
         <button type="button" className="btn-ghost" onClick={() => r.back()}>Batal</button></div>

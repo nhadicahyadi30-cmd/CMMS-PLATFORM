@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "dev": "ts-node-dev --respawn src/main.ts",
-    "test": "node --test dist/whatsapp/command.spec.js dist/storage/file-type.spec.js dist/admin/admin.spec.js dist/kpi/csv.spec.js dist/import/import.spec.js dist/reports/report-period.spec.js dist/reports/report-pdf.spec.js dist/leads/leads.spec.js dist/telemetry/telemetry.spec.js dist/telemetry/predict.spec.js dist/telemetry/monitor.spec.js dist/telemetry/device.spec.js dist/workforce/workload.spec.js"
+    "test": "node --test dist/whatsapp/command.spec.js dist/storage/file-type.spec.js dist/admin/admin.spec.js dist/kpi/csv.spec.js dist/import/import.spec.js dist/reports/report-period.spec.js dist/reports/report-pdf.spec.js dist/leads/leads.spec.js dist/telemetry/telemetry.spec.js dist/telemetry/predict.spec.js dist/telemetry/monitor.spec.js dist/telemetry/device.spec.js dist/workforce/workload.spec.js dist/energy/meters.spec.js dist/safety/safety.spec.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.670.0",

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { DbService } from '../db/db.service';
-import { dbCtx, RequireModule } from '../auth/auth.guard';
+import { dbCtx, RequireModule, DenyRoles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 
 const PartQty = z.object({ partId: z.string().uuid(), qty: z.number().positive().max(100000) });
@@ -9,6 +9,7 @@ const PartQty = z.object({ partId: z.string().uuid(), qty: z.number().positive()
 /** Pemakaian suku cadang pada WO (modul 3). Teknisi hanya pada WO yang ditugaskan kepadanya. */
 @Controller()
 @RequireModule(3)
+@DenyRoles('production')
 export class WoPartsController {
   constructor(private db: DbService) {}
 

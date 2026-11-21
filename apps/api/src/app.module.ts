@@ -16,6 +16,9 @@ import { WoPartsController } from './inventory/wo-parts.controller';
 import { KpiController } from './kpi/kpi.controller';
 import { RcaController, FailureModesController } from './rca/rca.controller';
 import { EnergyController } from './energy/energy.controller';
+import { InspectionsController } from './safety/inspections.controller';
+import { PermitsController, LotoController } from './safety/permits.controller';
+import { FieldController } from './safety/field.controller';
 import { AiController, AlarmsController } from './ai/ai.controller';
 import { AiService } from './ai/ai.service';
 import { ImportController } from './import/import.controller';
@@ -35,7 +38,7 @@ import { WhatsappProcessor } from './whatsapp/whatsapp.processor';
 import { WhatsappService } from './whatsapp/whatsapp.service';
 
 @Module({
-  controllers: [AuthController, LeadsController, IngestController, TelemetryController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, ImportController, ReportsController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WorkforceController, NotificationsController, WhatsappController],
+  controllers: [AuthController, LeadsController, IngestController, TelemetryController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, ImportController, ReportsController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WorkforceController, NotificationsController, WhatsappController, InspectionsController, PermitsController, LotoController, FieldController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AiService, AuthService, WhatsappService, WhatsappProcessor, StorageService, AttachmentsService, MailerService, ReportsService, ReportsScheduler],
 })
 export class AppModule {}

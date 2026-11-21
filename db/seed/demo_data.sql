@@ -23,7 +23,7 @@ declare
   i int; j int; k int; n int; r double precision;
   a_def text[]; a_row text[]; area1 uuid; area2 uuid; aid uuid[]; acode text[]; aname text[]; tel_idx int[];
   tid uuid[]; tname text[]; t_skills text[]; sk_codes text[] := array['MEK','ELK','INS','PLC','HYD','WLD']; sk_ids uuid[];
-  uid_spv uuid; uid_plan uuid; uid_tek uuid; tmp uuid;
+  uid_spv uuid; uid_plan uuid; uid_tek uuid; uid_prd uuid; tmp uuid; ins uuid; pmt uuid; pts timestamptz; rk int; px record;
   prob text[] := array['Bearing motor berisik dan panas','Seal pompa bocor','V-belt konveyor kendor/slip','Sensor suhu pembacaan tidak stabil','MCB panel trip berulang','Motor overheat saat beban penuh','Rembesan oli pada gearbox','Getaran tinggi pada kopling','Kebocoran steam pada flange','Suara abnormal pada kompresor'];
   prob_fm text[] := array['FM-BRG','FM-SEAL','FM-BELT','FM-SNS','FM-ELC','FM-MOT','FM-LUB','FM-BRG','FM-SEAL','FM-BRG'];
   prob_sk text[] := array['MEK','MEK','MEK','INS','ELK','ELK','MEK','MEK','WLD','MEK'];
@@ -54,12 +54,13 @@ begin
     insert into user_plants (user_id, plant_id) values (adm, pid) on conflict do nothing;
 
     -- ---------- pengguna demo (kata sandi sama dengan admin) ----------
-    uid_spv := gen_random_uuid(); uid_plan := gen_random_uuid(); uid_tek := gen_random_uuid();
+    uid_spv := gen_random_uuid(); uid_plan := gen_random_uuid(); uid_tek := gen_random_uuid(); uid_prd := gen_random_uuid();
     insert into users (id, org_id, username, full_name, role_code, password_hash) values
       (uid_spv, o, 'spv.' || lower(pc), 'Supervisor ' || pc, 'supervisor', ph),
       (uid_plan, o, 'plan.' || lower(pc), 'Planner ' || pc, 'planner', ph),
-      (uid_tek, o, 'tek.' || lower(pc) || '1', 'Teknisi ' || pc || '1', 'technician', ph);
-    insert into user_plants (user_id, plant_id) values (uid_spv, pid), (uid_plan, pid), (uid_tek, pid);
+      (uid_tek, o, 'tek.' || lower(pc) || '1', 'Teknisi ' || pc || '1', 'technician', ph),
+      (uid_prd, o, 'prd.' || lower(pc), 'Produksi ' || pc, 'production', ph);
+    insert into user_plants (user_id, plant_id) values (uid_spv, pid), (uid_plan, pid), (uid_tek, pid), (uid_prd, pid);
 
     -- ---------- teknisi + matriks skill ----------
     tname := case p when 1 then array['Budi Santoso','Agus Wijaya','Rudi Hartono','Dedi Kurniawan','Slamet Riyadi','Eko Prasetyo']
@@ -321,6 +322,106 @@ begin
                    (7, 'Menyediakan udara tekan', 'FM-ELC', 'Tekanan turun, lini berhenti', 'MCB trip karena beban', 7, 4, 3, 'Inspeksi panel bulanan', 'Thermografi panel', 'mitigated'),
                    (6, 'Mengalirkan air proses', 'FM-SEAL', 'Kebocoran, produk terkontaminasi', 'Seal mekanik aus', 7, 6, 5, 'Inspeksi visual harian', 'Ganti seal per 6 bulan', 'open'),
                    (8, 'Mendinginkan proses', 'FM-SNS', 'Suhu proses tidak terkendali', 'Sensor suhu drift', 6, 3, 6, 'Kalibrasi tahunan', 'Kalibrasi semesteran', 'accepted')) x(ai, f, fm, e, c, s, oc, d, cc, ra, st);
+
+    -- ---------- inspeksi & checklist: templat + riwayat ±8 minggu (sebagian abnormal -> WO otomatis) ----------
+    for n in 1..2 loop
+      tmp := gen_random_uuid();
+      insert into inspection_templates (id, org_id, plant_id, code, name, description, asset_id, audience, frequency_days)
+      values (tmp, o, pid, case n when 1 then 'CHK-' || pc || '-TEK' else 'CHK-' || pc || '-OPR' end,
+              case n when 1 then 'Inspeksi mingguan motor & pompa' else 'Checklist harian operator' end,
+              case n when 1 then 'Pemeriksaan kondisi, suhu, getaran, dan kebocoran (data demo)' else 'Pemeriksaan harian oleh operator produksi (data demo)' end,
+              aid[n], case n when 1 then 'technician' else 'production' end, case n when 1 then 7 else 1 end);
+      if n = 1 then
+        insert into inspection_items (org_id, template_id, seq, text, kind, unit, min_val, max_val, required, critical) values
+          (o, tmp, 1, 'Kondisi visual (baut, pelindung, kebersihan) baik', 'check', null, null, null, true, false),
+          (o, tmp, 2, 'Suhu bearing', 'number', '°C', 0, 75, true, true),
+          (o, tmp, 3, 'Getaran', 'number', 'mm/s', 0, 7.1, true, false),
+          (o, tmp, 4, 'Tidak ada kebocoran oli/air', 'check', null, null, null, true, true),
+          (o, tmp, 5, 'Catatan lain', 'text', null, null, null, false, false);
+      else
+        insert into inspection_items (org_id, template_id, seq, text, kind, unit, min_val, max_val, required, critical) values
+          (o, tmp, 1, 'Suara mesin normal', 'check', null, null, null, true, false),
+          (o, tmp, 2, 'Area mesin bersih dan bebas hambatan', 'check', null, null, null, true, false),
+          (o, tmp, 3, 'Tekanan kerja', 'number', 'bar', 4, 6, true, false);
+      end if;
+      k := case n when 1 then 8 else 14 end;
+      for j in 0..k - 1 loop
+        ins := gen_random_uuid();
+        c := (((today - case n when 1 then j * 7 + 1 else j end)::timestamp + interval '8 hours 20 minutes') at time zone tzs);
+        r := case when (n = 1 and j = 5) or (n = 2 and j = 4) then 1 else 0 end;   -- 1 = ada temuan abnormal
+        insert into inspections (id, org_id, plant_id, code, template_id, asset_id, performed_by, performed_at, notes, abnormal_count, wo_id)
+        values (ins, o, pid, next_doc_code('INS', o, pid), tmp, aid[n], case n when 1 then uid_tek else uid_prd end, c,
+                case when r = 1 then 'Ada temuan, WO dibuat otomatis (demo)' else '' end, r::int, null);
+        insert into inspection_results (org_id, inspection_id, item_id, seq, text, kind, unit, min_val, max_val, critical, value_ok, value_num, value_text, abnormal)
+        select o, ins, it.id, it.seq, it.text, it.kind, it.unit, it.min_val, it.max_val, it.critical,
+               case when it.kind = 'check' then true end,
+               case when it.kind = 'number' then (case when r = 1 and ((n = 1 and it.seq = 2) or (n = 2 and it.seq = 3)) then (case n when 1 then 82 else 3.2 end)
+                                                        else (case n when 1 then (case it.seq when 2 then 58 + (j % 4) * 2 else 3.1 + (j % 3) * 0.4 end) else 4.8 + (j % 3) * 0.2 end) end) end,
+               case when it.kind = 'text' then 'Normal' end,
+               (r = 1 and ((n = 1 and it.seq = 2) or (n = 2 and it.seq = 3)))
+          from inspection_items it where it.template_id = tmp and not (it.kind = 'text' and j % 2 = 1);
+        if r = 1 then
+          wid := gen_random_uuid();
+          insert into work_orders (id, org_id, plant_id, code, wo_type, source, title, description, asset_id, priority, status, requester_id, requester_text, technician_id, est_hours, actual_hours, downtime_hours, result_notes,
+                                   created_at, approved_at, approved_by, assigned_at, started_at, done_at, closed_at, closed_by, sla_respond_due, sla_resolve_due)
+          select wid, o, pid, next_wo_code(o, pid, c), 'corrective', 'inspection', 'Temuan inspeksi: ' || (case n when 1 then 'suhu bearing melewati batas' else 'tekanan kerja di bawah batas' end) || ' - ' || aname[n],
+                 'Dibuat otomatis dari inspeksi (data demo).', aid[n], case n when 1 then 'P2' else 'P3' end, case when j >= 3 then 'closed' else 'waiting' end,
+                 case n when 1 then uid_tek else uid_prd end, null, case when j >= 3 then tid[1] end, 2, case when j >= 3 then 1.8 end, 0, case when j >= 3 then 'Penyebab ditemukan dan dikoreksi; nilai kembali normal (demo).' end,
+                 c, case when j >= 3 then c + interval '30 minutes' end, case when j >= 3 then adm end, case when j >= 3 then c + interval '1 hour' end, case when j >= 3 then c + interval '2 hours' end,
+                 case when j >= 3 then c + interval '4 hours' end, case when j >= 3 then c + interval '5 hours' end, case when j >= 3 then adm end, c + interval '1 hour', c + interval '24 hours';
+          update inspections set wo_id = wid where id = ins;
+          insert into wo_logs (org_id, wo_id, at, actor_text, text) values (o, wid, c, 'Sistem', 'WO dibuat otomatis dari inspeksi');
+        end if;
+      end loop;
+    end loop;
+
+    -- ---------- LOTO: titik isolasi per aset + contoh izin kerja di berbagai status ----------
+    for i in 1..10 loop
+      insert into loto_points (org_id, plant_id, asset_id, seq, description, energy_type, method) values
+        (o, pid, aid[i], 1, 'MCB/isolator utama panel ' || acode[i], 'electrical', 'OFF, kunci, dan tempel tag'),
+        (o, pid, aid[i], 2, 'Katup isolasi ' || acode[i], 'mechanical', 'Tutup katup lalu kunci rantai'),
+        (o, pid, aid[i], 3, 'Bleed udara tekan ' || acode[i], 'pneumatic', 'Buang tekanan sisa, pastikan nol');
+    end loop;
+    for px in select * from (values
+      (1, 'closed',     3, -240, 'Ganti bearing motor',          'electrical'),
+      (2, 'active',     4,   -4, 'Perbaikan seal pompa',          'general'),
+      (3, 'handed_over',5,   -2, 'Servis gearbox',                'general'),
+      (4, 'approved',   6,   -1, 'Penggantian kontaktor panel',   'electrical'),
+      (5, 'requested',  7,    0, 'Pengelasan dudukan konveyor',   'hot_work'),
+      (6, 'rejected',   8,   -5, 'Pembersihan tangki',            'confined_space')) v(n, st, ai, off_h, ttl, wt) loop
+      pmt := gen_random_uuid();
+      pts := t0 + make_interval(hours => px.off_h);
+      rk := array_position(array['requested','approved','handed_over','active','completed','closed'], px.st);
+      insert into permits (id, org_id, plant_id, code, asset_id, wo_id, work_type, title, hazards, precautions, requires_loto, team, valid_from, valid_until, status, requested_by, created_at,
+                           approved_by, approved_at, reject_reason, rejected_at, handover_by, handover_at, handover_note, activated_by, activated_at,
+                           completed_by, completed_at, completion_note, returned_by, returned_at)
+      values (pmt, o, pid, next_doc_code('PTW', o, pid), aid[px.ai], case when px.n = 1 then closed_wo end, px.wt, px.ttl || ' - ' || aname[px.ai],
+              'Energi tersimpan, bagian berputar, permukaan panas (data demo)', 'LOTO terpasang, APD lengkap, area diberi barikade',
+              true, tname[1] || ', ' || tname[2], pts + interval '1 hour', pts + interval '9 hours', px.st, uid_tek, pts,
+              case when rk >= 2 then uid_spv end, case when rk >= 2 then pts + interval '30 minutes' end,
+              case when px.st = 'rejected' then 'Jadwal bentrok dengan produksi; ajukan ulang shift berikutnya (demo)' end, case when px.st = 'rejected' then pts + interval '20 minutes' end,
+              case when rk >= 3 then uid_prd end, case when rk >= 3 then pts + interval '1 hour' end, case when rk >= 3 then 'Area dikosongkan dan mesin dihentikan (demo)' end,
+              case when rk >= 4 then uid_tek end, case when rk >= 4 then pts + interval '90 minutes' end,
+              case when rk >= 5 then uid_tek end, case when rk >= 5 then pts + interval '5 hours' end, case when rk >= 5 then 'Pekerjaan selesai, gembok dilepas, area bersih (demo)' end,
+              case when rk >= 6 then uid_prd end, case when rk >= 6 then pts + interval '6 hours' end);
+      insert into permit_points (org_id, permit_id, loto_point_id, seq, description, energy_type, method, zero_verified_by, zero_verified_at)
+      select o, pmt, lp.id, lp.seq, lp.description, lp.energy_type, lp.method, case when rk >= 4 then uid_tek end, case when rk >= 4 then pts + interval '80 minutes' end
+        from loto_points lp where lp.asset_id = aid[px.ai] and lp.seq <= 2;
+      if rk >= 4 then
+        insert into permit_locks (org_id, permit_id, point_id, lock_no, applied_by, applied_at, removed_by, removed_at)
+        select o, pmt, pp.id, 'L-' || pc || '-' || px.n || '-' || pp.seq, uid_tek, pts + interval '75 minutes', case when rk >= 5 then uid_tek end, case when rk >= 5 then pts + interval '5 hours' end
+          from permit_points pp where pp.permit_id = pmt;
+      end if;
+      insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts, uid_tek, 'Teknisi ' || pc || '1', 'Izin diajukan');
+      if rk >= 2 then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '30 minutes', uid_spv, 'Supervisor ' || pc, 'Izin disetujui'); end if;
+      if px.st = 'rejected' then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '20 minutes', uid_spv, 'Supervisor ' || pc, 'Izin ditolak'); end if;
+      if rk >= 3 then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '1 hour', uid_prd, 'Produksi ' || pc, 'Area diserahkan oleh Produksi'); end if;
+      if rk >= 4 then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '75 minutes', uid_tek, 'Teknisi ' || pc || '1', 'Gembok dipasang dan nol-energi diverifikasi'), (o, pmt, pts + interval '90 minutes', uid_tek, 'Teknisi ' || pc || '1', 'Pekerjaan dimulai (izin aktif)'); end if;
+      if rk >= 5 then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '5 hours', uid_tek, 'Teknisi ' || pc || '1', 'Pekerjaan selesai, gembok dilepas'); end if;
+      if rk >= 6 then insert into permit_events (org_id, permit_id, at, actor_id, actor_text, text) values (o, pmt, pts + interval '6 hours', uid_prd, 'Produksi ' || pc, 'Penutupan dikonfirmasi pemilik area'); end if;
+      if px.st = 'requested' then insert into notifications (org_id, user_id, kind, title, body, link, created_at) values (o, uid_spv, 'ptw', 'Izin kerja menunggu persetujuan', px.ttl, '/permits/' || pmt, pts); end if;
+      if px.st = 'approved' then insert into notifications (org_id, user_id, kind, title, body, link, created_at) values (o, uid_prd, 'ptw', 'Izin kerja siap diserahkan areanya', px.ttl, '/permits/' || pmt, pts + interval '30 minutes'); end if;
+    end loop;
   end loop;
 
   -- ---------- beberapa notifikasi contoh untuk admin ----------

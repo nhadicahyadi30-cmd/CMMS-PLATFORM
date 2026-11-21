@@ -7,10 +7,13 @@ import { DbContext } from '../db/db.service';
 
 export const REQ_MODULE = 'req_module';
 export const REQ_ROLES = 'req_roles';
+export const DENY_ROLES = 'deny_roles';
 /** Wajib punya akses modul n (matriks role_modules). */
 export const RequireModule = (n: number) => SetMetadata(REQ_MODULE, n);
 /** Batasi ke role tertentu. */
 export const Roles = (...r: AuthUser['role'][]) => SetMetadata(REQ_ROLES, r);
+/** Tolak peran tertentu (mis. Produksi tidak boleh membaca modul tenaga kerja walau punya modul 3). */
+export const DenyRoles = (...r: AuthUser['role'][]) => SetMetadata(DENY_ROLES, r);
 export const PUBLIC = 'public';
 export const Public = () => SetMetadata(PUBLIC, true);
 
@@ -31,6 +34,8 @@ export class AuthGuard implements CanActivate {
     if (mod && !u.modules.includes(mod)) throw new ForbiddenException('Tidak punya akses ke modul ini');
     const roles = this.reflector.getAllAndOverride<string[] | undefined>(REQ_ROLES, h);
     if (roles && !roles.includes(u.role)) throw new ForbiddenException('Peran tidak diizinkan');
+    const deny = this.reflector.getAllAndOverride<string[] | undefined>(DENY_ROLES, h);
+    if (deny && deny.includes(u.role)) throw new ForbiddenException('Peran tidak diizinkan');
     return true;
   }
 }

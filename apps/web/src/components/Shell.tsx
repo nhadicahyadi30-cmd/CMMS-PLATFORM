@@ -25,11 +25,17 @@ const I: Record<string, Icon> = {
   pred: 'M3 17l5-5 4 3 8-9M15 6h5v5',
   wf: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 19v-1.5C3 15 5.5 13 9 13s6 2 6 4.5V19H3Zm13-13a2.5 2.5 0 0 1 0 5m1 2c2.5.4 4 2 4 4v2h-3',
   qr: 'M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h2v2h-2v-2Zm4 0h2v2h-2v-2Zm-4 4h2v2h-2v-2Zm4 0h2v2h-2v-2ZM7 7h0m10 0h0M7 17h0',
+  insp: 'M9 4h6l1 2h3v15H5V6h3l1-2Zm-1 9 2 2 4-4M8 18h8',
+  ptw: 'M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3Zm-3 9 2.2 2.2L15.5 10',
+  fld: 'M5 3h14v18H5V3Zm4 15h6M9 7h6M9 11h6',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
 const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group: string }[] = [
   { m: 3, href: '/work-orders', label: 'Work Order', icon: 'wo', group: 'Operasi' },
   { m: 2, href: '/pm', label: 'Preventive', icon: 'pm', group: 'Operasi' },
+  { m: 11, href: '/inspections', label: 'Inspeksi & Checklist', icon: 'insp', group: 'Operasi' },
+  { m: 12, href: '/permits', label: 'Izin Kerja (PTW)', icon: 'ptw', group: 'Operasi' },
+  { m: 11, href: '/field', label: 'Mode Lapangan', icon: 'fld', group: 'Operasi' },
   { m: 3, href: '/workload', label: 'Beban Teknisi', icon: 'wf', group: 'Operasi' },
   { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'wf', group: 'Operasi' },
   { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
@@ -47,7 +53,7 @@ const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group
   { m: 1, href: '/import', label: 'Impor Data', icon: 'imp', group: 'Pengaturan' },
   { m: 10, href: '/admin', label: 'Administrasi', icon: 'adm', group: 'Pengaturan' },
 ];
-const ROLE: Record<string, string> = { admin: 'Administrator', supervisor: 'Supervisor', planner: 'Planner', technician: 'Teknisi' };
+const ROLE: Record<string, string> = { admin: 'Administrator', supervisor: 'Supervisor', planner: 'Planner', technician: 'Teknisi', production: 'Produksi' };
 
 function NavIcon({ d }: { d: string }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0"><path d={d} /></svg>;
@@ -65,7 +71,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   useEffect(() => setOpen(false), [path]);
   if (!ready || !user) return <div className="flex min-h-screen items-center justify-center bg-ink-950"><div className="animate-pulse"><Logo size={56} dark /></div></div>;
 
-  const items = NAV.filter((n) => user.modules.includes(n.m) && (n.href !== '/import' || user.role !== 'technician'));
+  const items = NAV.filter((n) => user.modules.includes(n.m) && (n.href !== '/import' || user.role !== 'technician') && !(user.role === 'production' && ['/workload', '/skills'].includes(n.href)));
   const groups = [...new Set(items.map((n) => n.group))];
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 

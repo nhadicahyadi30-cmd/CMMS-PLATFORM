@@ -28,6 +28,7 @@ jobs:
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/workforce.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/notifications.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/meters.sql
+      - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/safety.sql
   firmware:
     runs-on: ubuntu-latest
     steps:

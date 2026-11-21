@@ -19,9 +19,19 @@ begin
   select array_agg(id) into pl from plants where org_id = o and code in ('PA','PB');
   if pl is null then raise notice 'Tidak ada data demo (plant PA/PB) di organisasi ini.'; return; end if;
 
-  delete from notifications where org_id = o and user_id in (select id from users where org_id = o and username in ('spv.pa','plan.pa','tek.pa1','spv.pb','plan.pb','tek.pb1'))
+  delete from notifications where org_id = o and user_id in (select id from users where org_id = o and username in ('spv.pa','plan.pa','tek.pa1','prd.pa','spv.pb','plan.pb','tek.pb1','prd.pb'))
      or (org_id = o and (link like '/work-orders/%' and split_part(link, '/', 3)::uuid in (select id from work_orders where plant_id = any(pl))));
   delete from notifications where org_id = o and link = '/monitoring' and created_at > now() - interval '2 days' and body in (select message from alarms where plant_id = any(pl));
+  delete from notifications where org_id = o and kind in ('ptw','inspection') and (link like '/permits/%' or link like '/inspections/%');
+  delete from permit_locks  where permit_id in (select id from permits where plant_id = any(pl));
+  delete from permit_points where permit_id in (select id from permits where plant_id = any(pl));
+  delete from permit_events where permit_id in (select id from permits where plant_id = any(pl));
+  delete from permits where plant_id = any(pl);
+  delete from loto_points where plant_id = any(pl);
+  delete from inspection_results where inspection_id in (select id from inspections where plant_id = any(pl));
+  delete from inspections where plant_id = any(pl);
+  delete from inspection_items where template_id in (select id from inspection_templates where plant_id = any(pl));
+  delete from inspection_templates where plant_id = any(pl);
   delete from rca_actions where case_id in (select id from rca_cases where plant_id = any(pl));
   delete from rca_causes  where case_id in (select id from rca_cases where plant_id = any(pl));
   delete from rca_whys    where case_id in (select id from rca_cases where plant_id = any(pl));
@@ -56,7 +66,7 @@ begin
   delete from wo_counters  where plant_id = any(pl);
   delete from doc_counters where plant_id = any(pl);
   delete from user_plants  where plant_id = any(pl);
-  delete from users where org_id = o and username in ('spv.pa','plan.pa','tek.pa1','spv.pb','plan.pb','tek.pb1');
+  delete from users where org_id = o and username in ('spv.pa','plan.pa','tek.pa1','prd.pa','spv.pb','plan.pb','tek.pb1','prd.pb');
   delete from plants where id = any(pl);
   raise notice 'Data demo dihapus (plant PA, PB).';
 end $rm$;

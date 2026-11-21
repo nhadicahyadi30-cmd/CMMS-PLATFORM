@@ -1,5 +1,5 @@
 'use client';
-export interface User { sub: string; org: string; role: 'admin' | 'supervisor' | 'planner' | 'technician'; name: string; plants: string[]; all: boolean; modules: number[] }
+export interface User { sub: string; org: string; role: 'admin' | 'supervisor' | 'planner' | 'technician' | 'production'; name: string; plants: string[]; all: boolean; modules: number[] }
 
 let token: string | null = null;
 let me: User | null = null;

@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseU
 import { z } from 'zod';
 import { PoolClient } from 'pg';
 import { DbService } from '../db/db.service';
-import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
+import { dbCtx, RequireModule, Roles, DenyRoles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 import {
   Absence, addDays, Candidate, Capacity, DEFAULT_SETTINGS, evaluate, LEVELS, Settings, SettingsDto, skillCoverage, suggest, techCapacity, techStatus,
@@ -29,6 +29,7 @@ interface Ctx {
 
 @Controller('workforce')
 @RequireModule(3)
+@DenyRoles('production')
 export class WorkforceController {
   constructor(private db: DbService) {}
 

@@ -63,14 +63,14 @@ Cara manual (tanpa menu Perangkat) ada di bagian berikut.
 5. **Set nilai awal running hour** sesuai hour meter fisik mesin: ketik di Serial Monitor `sethours 1204.5`. Nilai disimpan di flash. (Tanpa ini, hitungan dimulai dari 0.)
 6. Cek di MaintHub: Monitoring Mesin → nilai terakhir muncul dalam ±1 menit.
 
-Perintah serial: `status` (ringkasan), `sethours <jam>`, `wifi <nama> <password>` (simpan Wi-Fi ke flash tanpa flash ulang; nama berspasi pakai tanda kutip: `wifi "Nama WiFi" "password"`).
+Sejak firmware 1.2.0: konfigurasi lewat portal Wi-Fi/kode konfigurasi tanpa flash ulang (`docs/MQTT_RTU.md`); `config.h` hanya nilai awal. Perintah serial: `status` (ringkasan), `show`, `portal`, `cfg <kode>`, `factory`, `sethours <jam>`, `wifi <nama> <password>` (simpan Wi-Fi ke flash tanpa flash ulang; nama berspasi pakai tanda kutip: `wifi "Nama WiFi" "password"`).
 
 ### 5b. Lewat Node-RED (opsional, disarankan bila sudah ada Node-RED di pabrik)
 Alur: ESP32 → Node-RED → MaintHub. Keuntungan: API key tidak ada di ESP32, dan Node-RED bisa juga menerima PLC/MQTT lain.
 1. Node-RED → menu ☰ → *Import* → pilih `tools/nodered/mainthub-flow.json` → Deploy.
 2. Buka tab **MaintHub gateway** → *Environment Variables*: isi `MAINTHUB_URL` (mis. `http://192.168.1.50`) dan `MAINTHUB_KEY`. Ikon node *GET /api/ingest/ping* menjadi hijau bila kunci benar.
 3. Di `config.h` ESP32: `MH_URL "http://IP-NODERED:1880/mainthub/ingest"` dan `MH_API_KEY ""`.
-4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Alur Node-RED ini **sudah memuat** node `mqtt in` (jalur B), jadi untuk MQTT cukup arahkan broker. Firmware ESP32 di repo ini memakai jalur HTTP, bukan MQTT; varian firmware MQTT belum dibuat.
+4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Alur Node-RED ini **sudah memuat** node `mqtt in` (jalur B), jadi untuk MQTT cukup arahkan broker. Firmware versi 1.2.0 ke atas juga dapat mengirim lewat MQTT dengan konfigurasi tanpa flash ulang dan banyak perangkat: lihat **`docs/MQTT_RTU.md`**.
 Catatan: endpoint `/mainthub/ingest` di Node-RED tidak memakai autentikasi. Batasi di jaringan internal/VLAN, atau aktifkan `httpNodeAuth` di settings.js Node-RED.
 
 ### 5c. Mode demo (data dummy, tanpa sensor)

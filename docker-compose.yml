@@ -77,5 +77,41 @@ services:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - certs:/etc/nginx/certs
     networks: [internal]
-volumes: { pgdata: {}, miniodata: {}, certs: {} }
+  # ---- Jalur IoT (opsional): docker compose --profile iot up -d ----
+  mosquitto:
+    image: eclipse-mosquitto:2
+    profiles: [iot]
+    restart: unless-stopped
+    environment: { MQTT_USER: "${MQTT_USER:-}", MQTT_PASS: "${MQTT_PASS:-}" }
+    command:
+      - sh
+      - -c
+      - |
+        if [ -z "$$MQTT_USER" ] || [ -z "$$MQTT_PASS" ]; then echo "Isi MQTT_USER dan MQTT_PASS di .env lalu jalankan ulang"; exit 1; fi
+        mosquitto_passwd -b -c /mosquitto/data/passwd "$$MQTT_USER" "$$MQTT_PASS" && chown mosquitto:mosquitto /mosquitto/data/passwd 2>/dev/null; chmod 0700 /mosquitto/data/passwd
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
+    ports: ["1883:1883"]
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqttdata:/mosquitto/data
+    networks: [internal]
+  nodered:
+    image: nodered/node-red:4
+    profiles: [iot]
+    restart: unless-stopped
+    depends_on: [mosquitto, nginx]
+    environment:
+      TZ: Asia/Jakarta
+      MAINTHUB_URL: http://nginx
+      MAINTHUB_KEY: "${NODERED_MAINTHUB_KEY:-}"   # opsional: kunci cadangan bila perangkat tidak membawa kunci sendiri
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: "1884"
+    # Editor Node-RED tanpa login: hanya dibuka di komputer ini (127.0.0.1). Jangan dipublikasikan ke jaringan.
+    ports: ["127.0.0.1:1880:1880"]
+    volumes:
+      - noderedata:/data
+      - ./tools/nodered:/seed:ro
+    entrypoint: ["/bin/sh", "-c", "[ -f /data/flows.json ] || node /seed/seed.js; exec ./entrypoint.sh"]
+    networks: [internal]
+volumes: { pgdata: {}, miniodata: {}, certs: {}, mqttdata: {}, noderedata: {} }
 networks: { internal: {} }

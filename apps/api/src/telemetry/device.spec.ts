@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DeviceCreate, devConn, newDeviceId, normalizeServerUrl, parseHeartbeat, renderConfig, selectedTags, signalOf } from './device.rules';
+import { DeviceCreate, devConn, newDeviceId, normalizeServerUrl, parseHeartbeat, renderConfig, renderProvision, selectedTags, signalOf } from './device.rules';
 
 test('selectedTags: running hour selalu ada', () => {
   assert.deepEqual(selectedTags({ oilTemp: true, current: false, vibration: false }), ['oil_temp', 'running_hours']);
@@ -41,4 +41,26 @@ test('devConn & signalOf', () => {
 test('DeviceCreate: default sensor', () => {
   const d = DeviceCreate.parse({ assetId: '00000000-0000-0000-0000-000000000001', name: 'ESP Pompa', serverUrl: '192.168.1.5' });
   assert.deepEqual(d.sensors, { oilTemp: true, current: true, vibration: false });
+});
+
+test('DeviceCreate: HTTP butuh alamat server, MQTT butuh alamat broker', () => {
+  const base = { assetId: '00000000-0000-0000-0000-000000000001', name: 'ESP Pompa' };
+  assert.throws(() => DeviceCreate.parse(base));                                         // http tanpa alamat
+  assert.throws(() => DeviceCreate.parse({ ...base, transport: 'mqtt' }));               // mqtt tanpa broker
+  const m = DeviceCreate.parse({ ...base, transport: 'mqtt', mqttHost: '192.168.1.50' });
+  assert.equal(m.mqttPort, 1883); assert.equal(m.serverUrl, '');
+  assert.throws(() => DeviceCreate.parse({ ...base, transport: 'mqtt', mqttHost: 'x', mqttPort: 70000 }));
+});
+test('renderProvision: JSON valid, kunci pendek yang dibaca firmware, MQTT vs HTTP', () => {
+  const base = { origin: 'http://10.0.0.5', key: 'mhk_a.b', asset: 'PMP "1"', plant: 'P1', deviceId: 'esp-aaaaaa', tags: ['oil_temp', 'running_hours'] as any };
+  const h = JSON.parse(renderProvision(base));
+  assert.deepEqual([h.mh, h.id, h.asset, h.tr, h.url, h.oil, h.cur, h.vib, h.demo], [1, 'esp-aaaaaa', 'PMP "1"', 'http', 'http://10.0.0.5/api/ingest/readings', 1, 0, 0, 0]);
+  assert.equal(h.bh, undefined);
+  const m = JSON.parse(renderProvision({ ...base, origin: '', transport: 'mqtt', mqttHost: '192.168.1.50', mqttPort: 1884, mqttUser: 'rtu', mqttPass: 'p"w', demo: true }));
+  assert.deepEqual([m.tr, m.bh, m.bp, m.bu, m.bw, m.demo, m.url], ['mqtt', '192.168.1.50', 1884, 'rtu', 'p"w', 1, undefined]);
+  assert.ok(!renderProvision(base).includes('\n'));   // satu baris
+});
+test('renderConfig: MQTT mengisi MH_TRANSPORT dan broker', () => {
+  const c = renderConfig({ origin: '', key: 'k', asset: 'A', plant: '', deviceId: 'esp-aaaaaa', tags: ['running_hours'], transport: 'mqtt', mqttHost: 'b.local', mqttPort: 1883 });
+  assert.match(c, /MH_TRANSPORT\s+1/); assert.match(c, /MQTT_HOST\s+"b\.local"/); assert.match(c, /MH_URL\s+""/);
 });

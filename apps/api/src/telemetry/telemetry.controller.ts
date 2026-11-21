@@ -6,7 +6,7 @@ import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
 import { newKey } from './telemetry.rules';
-import { DeviceCreate, RotateDto, SENSOR_DEFS, SensorTag, devConn, newDeviceId, normalizeServerUrl, renderConfig, selectedTags, signalOf } from './device.rules';
+import { DeviceCreate, RotateDto, SENSOR_DEFS, SensorTag, devConn, newDeviceId, normalizeServerUrl, renderConfig, renderProvision, selectedTags, signalOf } from './device.rules';
 import { connOf, levelOf, runStateOf, worstLevel, Level } from './monitor.rules';
 import { healthScore, pmForecast, predictSensor, worstStatus, SensorStatus } from './predict.rules';
 
@@ -213,6 +213,7 @@ export class TelemetryController {
 
   // ---- Perangkat ESP32 terdaftar ----
   private serverOrigin(raw: string) {
+    if (!raw) return { origin: '', warnings: [] as string[] };   // jalur MQTT tidak memakai alamat server HTTP
     try { return normalizeServerUrl(raw); } catch (e: any) { throw new HttpException(e.message, HttpStatus.BAD_REQUEST); }
   }
 
@@ -231,7 +232,7 @@ export class TelemetryController {
   /** Daftarkan perangkat: membuat sensor (bila belum ada), API key khusus perangkat, dan config.h siap flash. Kunci hanya tampil sekali. */
   @Post('devices') @Roles('admin')
   createDevice(@Body() b: unknown, @Req() req: any) {
-    const d = parse(DeviceCreate, b); const srv = this.serverOrigin(d.serverUrl);
+    const d = parse(DeviceCreate, b); const srv = this.serverOrigin(d.transport === 'http' ? d.serverUrl : '');
     return this.run(req, async (c) => {
       const a = (await c.query('select a.id, a.code, a.plant_id, p.code::text as plant_code from assets a join plants p on p.id = a.plant_id where a.id = $1', [d.assetId])).rows[0];
       if (!a) throw new HttpException('Aset tidak ditemukan', HttpStatus.NOT_FOUND);
@@ -247,10 +248,11 @@ export class TelemetryController {
       const keyId = randomUUID(); const k = newKey(keyId); const deviceId = newDeviceId();
       await c.query('insert into ingest_keys (id, org_id, plant_id, name, secret_hash, created_by) values ($1,$2,$3,$4,$5,$6)', [keyId, req.user.org, a.plant_id, `ESP32 ${d.name}`.slice(0, 120), k.hash, req.user.sub]);
       const dev = (await c.query('insert into ingest_devices (org_id, plant_id, asset_id, device_id, name, key_id, sensors, created_by) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id', [req.user.org, a.plant_id, a.id, deviceId, d.name, keyId, tags, req.user.sub])).rows[0];
+      const ci = { origin: srv.origin, key: k.key, asset: a.code, plant: a.plant_code, deviceId, tags, demo: d.demo, transport: d.transport, mqttHost: d.mqttHost, mqttPort: d.mqttPort, mqttUser: d.mqttUser, mqttPass: d.mqttPass };
       return {
         id: dev.id, deviceId, key: k.key, assetCode: a.code, createdTags, existingTags, warnings: srv.warnings,
-        config: renderConfig({ origin: srv.origin, key: k.key, asset: a.code, plant: a.plant_code, deviceId, tags, demo: d.demo }), demo: d.demo,
-        note: 'Simpan config.h ini sekarang. API key tidak dapat ditampilkan lagi; bila hilang, buat ulang kunci.',
+        config: renderConfig(ci), provision: renderProvision(ci), transport: d.transport, demo: d.demo,
+        note: 'Simpan kode konfigurasi/config.h ini sekarang. API key tidak dapat ditampilkan lagi; bila hilang, buat ulang kunci.',
       };
     });
   }
@@ -258,7 +260,7 @@ export class TelemetryController {
   /** Cabut kunci lama dan buat kunci baru untuk perangkat (kunci hilang/bocor). */
   @Post('devices/:id/rotate-key') @Roles('admin')
   rotateKey(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
-    const d = parse(RotateDto, b); const srv = this.serverOrigin(d.serverUrl);
+    const d = parse(RotateDto, b); const srv = this.serverOrigin(d.transport === 'http' ? d.serverUrl : '');
     return this.run(req, async (c) => {
       const dev = (await c.query(`select d.id, d.device_id, d.name, d.sensors, d.key_id, d.active, d.plant_id, a.code as asset_code, p.code::text as plant_code
                                     from ingest_devices d join assets a on a.id = d.asset_id join plants p on p.id = d.plant_id where d.id = $1`, [id])).rows[0];
@@ -268,7 +270,8 @@ export class TelemetryController {
       const keyId = randomUUID(); const k = newKey(keyId);
       await c.query('insert into ingest_keys (id, org_id, plant_id, name, secret_hash, created_by) values ($1,$2,$3,$4,$5,$6)', [keyId, req.user.org, dev.plant_id, `ESP32 ${dev.name}`.slice(0, 120), k.hash, req.user.sub]);
       await c.query('update ingest_devices set key_id = $2 where id = $1', [id, keyId]);
-      return { id, deviceId: dev.device_id, key: k.key, warnings: srv.warnings, config: renderConfig({ origin: srv.origin, key: k.key, asset: dev.asset_code, plant: dev.plant_code, deviceId: dev.device_id, tags: dev.sensors, demo: d.demo }), note: 'Kunci lama sudah dicabut: flash ulang ESP32 dengan config.h baru ini.' };
+      const ci = { origin: srv.origin, key: k.key, asset: dev.asset_code, plant: dev.plant_code, deviceId: dev.device_id, tags: dev.sensors, demo: d.demo, transport: d.transport, mqttHost: d.mqttHost, mqttPort: d.mqttPort, mqttUser: d.mqttUser, mqttPass: d.mqttPass };
+      return { id, deviceId: dev.device_id, key: k.key, assetCode: dev.asset_code, warnings: srv.warnings, config: renderConfig(ci), provision: renderProvision(ci), transport: d.transport, note: 'Kunci lama sudah dicabut: tempel kode konfigurasi baru ini di portal perangkat (atau perintah serial cfg), tanpa flash ulang.' };
     });
   }
 

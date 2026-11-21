@@ -10,14 +10,27 @@ export const SENSOR_DEFS = {
 } as const;
 export type SensorTag = keyof typeof SENSOR_DEFS;
 
+/** Jalur kirim perangkat: http = langsung ke MaintHub, mqtt = lewat broker (Mosquitto) + Node-RED. */
+const TransportFields = {
+  serverUrl: z.string().trim().max(200).default(''),
+  demo: z.boolean().default(false),
+  transport: z.enum(['http', 'mqtt']).default('http'),
+  mqttHost: z.string().trim().max(80).default(''),
+  mqttPort: z.number().int().min(1).max(65535).default(1883),
+  mqttUser: z.string().trim().max(48).default(''),
+  mqttPass: z.string().max(64).default(''),
+};
+const needTransport = (v: { transport: string; serverUrl: string; mqttHost: string }, ctx: z.RefinementCtx) => {
+  if (v.transport === 'http' && !v.serverUrl) ctx.addIssue({ code: 'custom', path: ['serverUrl'], message: 'Alamat server wajib untuk jalur HTTP' });
+  if (v.transport === 'mqtt' && !v.mqttHost) ctx.addIssue({ code: 'custom', path: ['mqttHost'], message: 'Alamat broker MQTT wajib untuk jalur MQTT' });
+};
 export const DeviceCreate = z.object({
   assetId: z.string().uuid(),
   name: z.string().trim().min(2).max(120),
   sensors: z.object({ oilTemp: z.boolean().default(true), current: z.boolean().default(true), vibration: z.boolean().default(false) }).default({ oilTemp: true, current: true, vibration: false }),
-  serverUrl: z.string().trim().max(200),
-  demo: z.boolean().default(false),
-});
-export const RotateDto = z.object({ serverUrl: z.string().trim().max(200), demo: z.boolean().default(false) });
+  ...TransportFields,
+}).superRefine(needTransport);
+export const RotateDto = z.object({ ...TransportFields }).superRefine(needTransport);
 
 /** Tag yang akan dibuat/dipakai: running hour selalu ada. */
 export function selectedTags(s: { oilTemp: boolean; current: boolean; vibration: boolean }): SensorTag[] {
@@ -41,7 +54,18 @@ export function normalizeServerUrl(raw: string): { origin: string; warnings: str
 
 const cs = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ');
 
-export interface ConfigInput { origin: string; key: string; asset: string; plant: string; deviceId: string; tags: SensorTag[]; demo?: boolean }
+export interface Transport { transport?: 'http' | 'mqtt'; mqttHost?: string; mqttPort?: number; mqttUser?: string; mqttPass?: string }
+export interface ConfigInput extends Transport { origin: string; key: string; asset: string; plant: string; deviceId: string; tags: SensorTag[]; demo?: boolean }
+
+/** "Kode konfigurasi": satu baris JSON yang ditempel di portal Wi-Fi perangkat (atau `cfg <kode>` di serial) sehingga firmware yang sama dapat dipakai semua perangkat tanpa flash ulang. */
+export function renderProvision(i: ConfigInput): string {
+  const mqtt = i.transport === 'mqtt';
+  const o: Record<string, string | number> = { mh: 1, id: i.deviceId, asset: i.asset, plant: i.plant, key: i.key, tr: mqtt ? 'mqtt' : 'http', demo: i.demo ? 1 : 0,
+    oil: i.tags.includes('oil_temp') ? 1 : 0, cur: i.tags.includes('motor_current') ? 1 : 0, vib: i.tags.includes('vibration_rms') ? 1 : 0 };
+  if (mqtt) { o.bh = i.mqttHost ?? ''; o.bp = i.mqttPort ?? 1883; o.bu = i.mqttUser ?? ''; o.bw = i.mqttPass ?? ''; }
+  else o.url = `${i.origin}/api/ingest/readings`;
+  return JSON.stringify(o);
+}
 /** Isi config.h lengkap yang siap di-flash (SSID/password diisi di tempat atau lewat perintah serial `wifi`). */
 export function renderConfig(i: ConfigInput): string {
   const has = (t: SensorTag) => (i.tags.includes(t) ? 1 : 0);
@@ -53,11 +77,17 @@ export function renderConfig(i: ConfigInput): string {
 #define WIFI_PASS        "PASSWORD_WIFI"
 
 // ---- MaintHub ----
-#define MH_URL           "${cs(i.origin)}/api/ingest/readings"
+#define MH_URL           "${i.origin ? cs(i.origin) + '/api/ingest/readings' : ''}"
 #define MH_API_KEY       "${cs(i.key)}"
 #define MH_ASSET         "${cs(i.asset)}"
 #define MH_PLANT         "${cs(i.plant)}"
 #define DEVICE_ID        "${cs(i.deviceId)}"
+// Jalur kirim: 0 = HTTP langsung ke MaintHub (MH_URL), 1 = MQTT ke broker lalu Node-RED meneruskan ke MaintHub
+#define MH_TRANSPORT     ${i.transport === 'mqtt' ? 1 : 0}
+#define MQTT_HOST        "${cs(i.mqttHost ?? '')}"
+#define MQTT_PORT        ${i.mqttPort ?? 1883}
+#define MQTT_USER        "${cs(i.mqttUser ?? '')}"
+#define MQTT_PASS        "${cs(i.mqttPass ?? '')}"
 // HTTPS: untuk memverifikasi server, definisikan MH_ROOT_CA berisi sertifikat root (PEM). Tanpa ini koneksi tetap terenkripsi tetapi server tidak diverifikasi.
 // #define MH_ROOT_CA "-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"
 
@@ -82,6 +112,7 @@ export function renderConfig(i: ConfigInput): string {
 #define RUN_ACTIVE_LEVEL LOW
 #define PIN_I2C_SDA      21
 #define PIN_I2C_SCL      22
+#define PIN_PORTAL       0     // tombol BOOT: tahan 3 detik untuk membuka portal konfigurasi; -1 = nonaktif
 
 // ---- Deteksi mesin jalan & kalibrasi ----
 #define RUN_CURRENT_A    1.5f

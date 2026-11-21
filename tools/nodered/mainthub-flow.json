@@ -1,307 +1,423 @@
 [
- {
-  "id": "mh_tab",
-  "type": "tab",
-  "label": "MaintHub gateway",
-  "disabled": false,
-  "info": "ESP32/PLC -> Node-RED -> MaintHub. Isi MAINTHUB_URL dan MAINTHUB_KEY pada Environment Variables tab ini.",
-  "env": [
-   {
-    "name": "MAINTHUB_URL",
-    "value": "http://ALAMAT-SERVER",
-    "type": "str"
-   },
-   {
-    "name": "MAINTHUB_KEY",
-    "value": "mhk_ISI_KUNCI",
-    "type": "str"
-   }
-  ]
- },
- {
-  "id": "c1",
-  "type": "comment",
-  "z": "mh_tab",
-  "name": "A. ESP32 -> HTTP POST ke http://<node-red>:1880/mainthub/ingest",
-  "info": "",
-  "x": 240,
-  "y": 40,
-  "wires": []
- },
- {
-  "id": "h_in",
-  "type": "http in",
-  "z": "mh_tab",
-  "name": "POST /mainthub/ingest",
-  "url": "/mainthub/ingest",
-  "method": "post",
-  "upload": false,
-  "swaggerDoc": "",
-  "x": 160,
-  "y": 90,
-  "wires": [
-   [
-    "h_fn"
-   ]
-  ]
- },
- {
-  "id": "h_fn",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "Siapkan & validasi",
-  "func": "// Teruskan pembacaan ke MaintHub dengan API key yang disimpan di Node-RED (bukan di ESP32).\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst key = env.get('MAINTHUB_KEY');\nif (!base || !key) { node.error('Isi MAINTHUB_URL dan MAINTHUB_KEY di tab flow ini'); msg.statusCode = 500; msg.payload = { error: 'gateway belum dikonfigurasi' }; return [null, msg]; }\nconst b = msg.payload;\nconst readings = Array.isArray(b) ? b : (b && b.readings);\nif (!Array.isArray(readings) || !readings.length || readings.length > 500) { msg.statusCode = 400; msg.payload = { error: 'readings kosong atau > 500' }; return [null, msg]; }\nmsg.url = base + '/api/ingest/readings';\nmsg.method = 'POST';\nmsg.headers = { 'x-api-key': key, 'content-type': 'application/json' };\nmsg.payload = { readings };\nreturn [msg, null];",
-  "outputs": 2,
-  "x": 390,
-  "y": 90,
-  "wires": [
-   [
-    "h_req"
-   ],
-   [
-    "h_res"
-   ]
-  ]
- },
- {
-  "id": "h_req",
-  "type": "http request",
-  "z": "mh_tab",
-  "name": "Kirim ke MaintHub",
-  "method": "use",
-  "ret": "obj",
-  "paytoqs": "ignore",
-  "url": "",
-  "tls": "",
-  "persist": false,
-  "proxy": "",
-  "authType": "",
-  "x": 620,
-  "y": 70,
-  "wires": [
-   [
-    "h_rp"
-   ]
-  ]
- },
- {
-  "id": "h_rp",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "Teruskan balasan",
-  "func": "// Teruskan balasan MaintHub apa adanya ke ESP32 (200 = terima; 401/400 dst diteruskan agar firmware tahu).\nmsg.statusCode = msg.statusCode || 502;\nif (msg.statusCode >= 400) node.warn('MaintHub membalas ' + msg.statusCode + ': ' + JSON.stringify(msg.payload).slice(0, 200));\nelse if (msg.payload && msg.payload.errors && msg.payload.errors.length) node.warn('Sebagian ditolak: ' + JSON.stringify(msg.payload.errors).slice(0, 300));\nreturn msg;",
-  "outputs": 1,
-  "x": 820,
-  "y": 70,
-  "wires": [
-   [
-    "h_res"
-   ]
-  ]
- },
- {
-  "id": "h_res",
-  "type": "http response",
-  "z": "mh_tab",
-  "name": "Balas ESP32",
-  "statusCode": "",
-  "headers": {},
-  "x": 1010,
-  "y": 90,
-  "wires": []
- },
- {
-  "id": "c2",
-  "type": "comment",
-  "z": "mh_tab",
-  "name": "B. MQTT (opsional): mainthub/<KODE-ASET>/telemetry",
-  "info": "Ubah broker pada node mqtt in.",
-  "x": 220,
-  "y": 180,
-  "wires": []
- },
- {
-  "id": "m_in",
-  "type": "mqtt in",
-  "z": "mh_tab",
-  "name": "",
-  "topic": "mainthub/+/telemetry",
-  "qos": "1",
-  "datatype": "auto-detect",
-  "broker": "mh_broker",
-  "nl": false,
-  "rap": true,
-  "rh": 0,
-  "inputs": 0,
-  "x": 170,
-  "y": 230,
-  "wires": [
-   [
-    "m_fn"
-   ]
-  ]
- },
- {
-  "id": "m_fn",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "Petakan ke readings",
-  "func": "// Topik: mainthub/<KODE-ASET>/telemetry   Isi JSON: {\"oil_temp\":71.2,\"motor_current\":17.8,\"running_hours\":1204.5,\"ts\":1794800000}\n// Setiap kunci selain \"ts\" dan \"plant\" menjadi satu tag. Nama kunci harus sama dengan tag di menu Telemetri Mesin.\nconst parts = (msg.topic || '').split('/');\nconst asset = parts[1];\nlet d = msg.payload; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) { node.warn('JSON tidak valid'); return null; } }\nif (!asset || !d || typeof d !== 'object') return null;\nconst readings = [];\nfor (const [k, v] of Object.entries(d)) {\n  if (k === 'ts' || k === 'plant' || typeof v !== 'number' || !isFinite(v)) continue;\n  const r = { asset, tag: k.toLowerCase(), value: v };\n  if (d.ts) r.ts = d.ts; if (d.plant) r.plant = d.plant;\n  readings.push(r);\n}\nif (!readings.length) return null;\nmsg.payload = { readings };\nreturn msg;",
-  "outputs": 1,
-  "x": 400,
-  "y": 230,
-  "wires": [
-   [
-    "m_fwd"
-   ]
-  ]
- },
- {
-  "id": "m_fwd",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "Siapkan & validasi",
-  "func": "// Teruskan pembacaan ke MaintHub dengan API key yang disimpan di Node-RED (bukan di ESP32).\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst key = env.get('MAINTHUB_KEY');\nif (!base || !key) { node.error('Isi MAINTHUB_URL dan MAINTHUB_KEY di tab flow ini'); msg.statusCode = 500; msg.payload = { error: 'gateway belum dikonfigurasi' }; return [null, msg]; }\nconst b = msg.payload;\nconst readings = Array.isArray(b) ? b : (b && b.readings);\nif (!Array.isArray(readings) || !readings.length || readings.length > 500) { msg.statusCode = 400; msg.payload = { error: 'readings kosong atau > 500' }; return [null, msg]; }\nmsg.url = base + '/api/ingest/readings';\nmsg.method = 'POST';\nmsg.headers = { 'x-api-key': key, 'content-type': 'application/json' };\nmsg.payload = { readings };\nreturn [msg, null];",
-  "outputs": 2,
-  "x": 620,
-  "y": 230,
-  "wires": [
-   [
-    "m_req"
-   ],
-   [
-    "m_dbg"
-   ]
-  ]
- },
- {
-  "id": "m_req",
-  "type": "http request",
-  "z": "mh_tab",
-  "name": "Kirim ke MaintHub",
-  "method": "use",
-  "ret": "obj",
-  "paytoqs": "ignore",
-  "url": "",
-  "tls": "",
-  "persist": false,
-  "proxy": "",
-  "authType": "",
-  "x": 830,
-  "y": 210,
-  "wires": [
-   [
-    "m_dbg"
-   ]
-  ]
- },
- {
-  "id": "m_dbg",
-  "type": "debug",
-  "z": "mh_tab",
-  "name": "Hasil MQTT",
-  "active": true,
-  "complete": "payload",
-  "x": 1030,
-  "y": 230,
-  "wires": []
- },
- {
-  "id": "mh_broker",
-  "type": "mqtt-broker",
-  "name": "Broker lokal",
-  "broker": "localhost",
-  "port": "1883",
-  "clientid": "",
-  "autoConnect": true,
-  "usetls": false,
-  "protocolVersion": "4",
-  "keepalive": "60",
-  "cleansession": true,
-  "autoUnsubscribe": true
- },
- {
-  "id": "c3",
-  "type": "comment",
-  "z": "mh_tab",
-  "name": "C. Cek koneksi & kunci tiap 5 menit",
-  "info": "",
-  "x": 190,
-  "y": 320,
-  "wires": []
- },
- {
-  "id": "p_inj",
-  "type": "inject",
-  "z": "mh_tab",
-  "name": "",
-  "props": [
-   {
-    "p": "payload"
-   }
-  ],
-  "repeat": "300",
-  "crontab": "",
-  "once": true,
-  "onceDelay": "5",
-  "topic": "",
-  "payload": "",
-  "payloadType": "date",
-  "x": 130,
-  "y": 370,
-  "wires": [
-   [
-    "p_fn"
-   ]
-  ]
- },
- {
-  "id": "p_fn",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "GET /api/ingest/ping",
-  "func": "msg.url = (env.get('MAINTHUB_URL')||'').replace(/\\/+$/,'') + '/api/ingest/ping';\nmsg.method = 'GET';\nmsg.headers = { 'x-api-key': env.get('MAINTHUB_KEY') };\nreturn msg;",
-  "outputs": 1,
-  "x": 340,
-  "y": 370,
-  "wires": [
-   [
-    "p_req"
-   ]
-  ]
- },
- {
-  "id": "p_req",
-  "type": "http request",
-  "z": "mh_tab",
-  "name": "",
-  "method": "use",
-  "ret": "obj",
-  "paytoqs": "ignore",
-  "url": "",
-  "tls": "",
-  "persist": false,
-  "proxy": "",
-  "authType": "",
-  "x": 560,
-  "y": 370,
-  "wires": [
-   [
-    "p_st"
-   ]
-  ]
- },
- {
-  "id": "p_st",
-  "type": "function",
-  "z": "mh_tab",
-  "name": "Status",
-  "func": "const ok = msg.statusCode === 200 && msg.payload && msg.payload.ok;\nnode.status({ fill: ok ? 'green' : 'red', shape: 'dot', text: ok ? 'MaintHub OK (' + msg.payload.key + ')' : 'GAGAL ' + msg.statusCode });\nif (!ok) node.warn('Ping MaintHub gagal: ' + msg.statusCode + ' ' + JSON.stringify(msg.payload).slice(0,200));\nreturn null;",
-  "outputs": 1,
-  "x": 740,
-  "y": 370,
-  "wires": [
-   []
-  ]
- }
+  {
+    "id": "mh_tab",
+    "type": "tab",
+    "label": "MaintHub gateway",
+    "disabled": false,
+    "info": "ESP32/RTU/PLC -> Node-RED -> MaintHub. Isi MAINTHUB_URL (dan MAINTHUB_KEY bila perangkat tidak membawa kunci sendiri) pada Environment Variables tab ini. Cabang D menerima kiriman MQTT dari perangkat RTU berkunci sendiri.",
+    "env": [
+      {
+        "name": "MAINTHUB_URL",
+        "value": "http://ALAMAT-SERVER",
+        "type": "str"
+      },
+      {
+        "name": "MAINTHUB_KEY",
+        "value": "mhk_ISI_KUNCI",
+        "type": "str"
+      }
+    ]
+  },
+  {
+    "id": "c1",
+    "type": "comment",
+    "z": "mh_tab",
+    "name": "A. ESP32 -> HTTP POST ke http://<node-red>:1880/mainthub/ingest",
+    "info": "",
+    "x": 240,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "h_in",
+    "type": "http in",
+    "z": "mh_tab",
+    "name": "POST /mainthub/ingest",
+    "url": "/mainthub/ingest",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 90,
+    "wires": [
+      [
+        "h_fn"
+      ]
+    ]
+  },
+  {
+    "id": "h_fn",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Siapkan & validasi",
+    "func": "// Teruskan pembacaan ke MaintHub dengan API key yang disimpan di Node-RED (bukan di ESP32).\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst key = env.get('MAINTHUB_KEY');\nif (!base || !key) { node.error('Isi MAINTHUB_URL dan MAINTHUB_KEY di tab flow ini'); msg.statusCode = 500; msg.payload = { error: 'gateway belum dikonfigurasi' }; return [null, msg]; }\nconst b = msg.payload;\nconst readings = Array.isArray(b) ? b : (b && b.readings);\nif (!Array.isArray(readings) || !readings.length || readings.length > 500) { msg.statusCode = 400; msg.payload = { error: 'readings kosong atau > 500' }; return [null, msg]; }\nmsg.url = base + '/api/ingest/readings';\nmsg.method = 'POST';\nmsg.headers = { 'x-api-key': key, 'content-type': 'application/json' };\nmsg.payload = { readings };\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 390,
+    "y": 90,
+    "wires": [
+      [
+        "h_req"
+      ],
+      [
+        "h_res"
+      ]
+    ]
+  },
+  {
+    "id": "h_req",
+    "type": "http request",
+    "z": "mh_tab",
+    "name": "Kirim ke MaintHub",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "authType": "",
+    "x": 620,
+    "y": 70,
+    "wires": [
+      [
+        "h_rp"
+      ]
+    ]
+  },
+  {
+    "id": "h_rp",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Teruskan balasan",
+    "func": "// Teruskan balasan MaintHub apa adanya ke ESP32 (200 = terima; 401/400 dst diteruskan agar firmware tahu).\nmsg.statusCode = msg.statusCode || 502;\nif (msg.statusCode >= 400) node.warn('MaintHub membalas ' + msg.statusCode + ': ' + JSON.stringify(msg.payload).slice(0, 200));\nelse if (msg.payload && msg.payload.errors && msg.payload.errors.length) node.warn('Sebagian ditolak: ' + JSON.stringify(msg.payload.errors).slice(0, 300));\nreturn msg;",
+    "outputs": 1,
+    "x": 820,
+    "y": 70,
+    "wires": [
+      [
+        "h_res"
+      ]
+    ]
+  },
+  {
+    "id": "h_res",
+    "type": "http response",
+    "z": "mh_tab",
+    "name": "Balas ESP32",
+    "statusCode": "",
+    "headers": {},
+    "x": 1010,
+    "y": 90,
+    "wires": []
+  },
+  {
+    "id": "c2",
+    "type": "comment",
+    "z": "mh_tab",
+    "name": "B. MQTT (opsional): mainthub/<KODE-ASET>/telemetry",
+    "info": "Ubah broker pada node mqtt in.",
+    "x": 220,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "m_in",
+    "type": "mqtt in",
+    "z": "mh_tab",
+    "name": "",
+    "topic": "mainthub/+/telemetry",
+    "qos": "1",
+    "datatype": "auto-detect",
+    "broker": "mh_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 230,
+    "wires": [
+      [
+        "m_fn"
+      ]
+    ]
+  },
+  {
+    "id": "m_fn",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Petakan ke readings",
+    "func": "// Topik: mainthub/<KODE-ASET>/telemetry   Isi JSON: {\"oil_temp\":71.2,\"motor_current\":17.8,\"running_hours\":1204.5,\"ts\":1794800000}\n// Setiap kunci selain \"ts\" dan \"plant\" menjadi satu tag. Nama kunci harus sama dengan tag di menu Telemetri Mesin.\nconst parts = (msg.topic || '').split('/');\nconst asset = parts[1];\nlet d = msg.payload; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) { node.warn('JSON tidak valid'); return null; } }\nif (!asset || !d || typeof d !== 'object') return null;\nconst readings = [];\nfor (const [k, v] of Object.entries(d)) {\n  if (k === 'ts' || k === 'plant' || typeof v !== 'number' || !isFinite(v)) continue;\n  const r = { asset, tag: k.toLowerCase(), value: v };\n  if (d.ts) r.ts = d.ts; if (d.plant) r.plant = d.plant;\n  readings.push(r);\n}\nif (!readings.length) return null;\nmsg.payload = { readings };\nreturn msg;",
+    "outputs": 1,
+    "x": 400,
+    "y": 230,
+    "wires": [
+      [
+        "m_fwd"
+      ]
+    ]
+  },
+  {
+    "id": "m_fwd",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Siapkan & validasi",
+    "func": "// Teruskan pembacaan ke MaintHub dengan API key yang disimpan di Node-RED (bukan di ESP32).\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst key = env.get('MAINTHUB_KEY');\nif (!base || !key) { node.error('Isi MAINTHUB_URL dan MAINTHUB_KEY di tab flow ini'); msg.statusCode = 500; msg.payload = { error: 'gateway belum dikonfigurasi' }; return [null, msg]; }\nconst b = msg.payload;\nconst readings = Array.isArray(b) ? b : (b && b.readings);\nif (!Array.isArray(readings) || !readings.length || readings.length > 500) { msg.statusCode = 400; msg.payload = { error: 'readings kosong atau > 500' }; return [null, msg]; }\nmsg.url = base + '/api/ingest/readings';\nmsg.method = 'POST';\nmsg.headers = { 'x-api-key': key, 'content-type': 'application/json' };\nmsg.payload = { readings };\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 620,
+    "y": 230,
+    "wires": [
+      [
+        "m_req"
+      ],
+      [
+        "m_dbg"
+      ]
+    ]
+  },
+  {
+    "id": "m_req",
+    "type": "http request",
+    "z": "mh_tab",
+    "name": "Kirim ke MaintHub",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "authType": "",
+    "x": 830,
+    "y": 210,
+    "wires": [
+      [
+        "m_dbg"
+      ]
+    ]
+  },
+  {
+    "id": "m_dbg",
+    "type": "debug",
+    "z": "mh_tab",
+    "name": "Hasil MQTT",
+    "active": true,
+    "complete": "payload",
+    "x": 1030,
+    "y": 230,
+    "wires": []
+  },
+  {
+    "id": "mh_broker",
+    "type": "mqtt-broker",
+    "name": "Broker lokal",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true
+  },
+  {
+    "id": "c3",
+    "type": "comment",
+    "z": "mh_tab",
+    "name": "C. Cek koneksi & kunci tiap 5 menit",
+    "info": "",
+    "x": 190,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "p_inj",
+    "type": "inject",
+    "z": "mh_tab",
+    "name": "",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "300",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "5",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 370,
+    "wires": [
+      [
+        "p_fn"
+      ]
+    ]
+  },
+  {
+    "id": "p_fn",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "GET /api/ingest/ping",
+    "func": "msg.url = (env.get('MAINTHUB_URL')||'').replace(/\\/+$/,'') + '/api/ingest/ping';\nmsg.method = 'GET';\nmsg.headers = { 'x-api-key': env.get('MAINTHUB_KEY') };\nreturn msg;",
+    "outputs": 1,
+    "x": 340,
+    "y": 370,
+    "wires": [
+      [
+        "p_req"
+      ]
+    ]
+  },
+  {
+    "id": "p_req",
+    "type": "http request",
+    "z": "mh_tab",
+    "name": "",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "authType": "",
+    "x": 560,
+    "y": 370,
+    "wires": [
+      [
+        "p_st"
+      ]
+    ]
+  },
+  {
+    "id": "p_st",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Status",
+    "func": "const ok = msg.statusCode === 200 && msg.payload && msg.payload.ok;\nnode.status({ fill: ok ? 'green' : 'red', shape: 'dot', text: ok ? 'MaintHub OK (' + msg.payload.key + ')' : 'GAGAL ' + msg.statusCode });\nif (!ok) node.warn('Ping MaintHub gagal: ' + msg.statusCode + ' ' + JSON.stringify(msg.payload).slice(0,200));\nreturn null;",
+    "outputs": 1,
+    "x": 740,
+    "y": 370,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c4",
+    "type": "comment",
+    "z": "mh_tab",
+    "name": "D) MQTT dari RTU (kunci per perangkat) -> MaintHub, dengan balasan ack",
+    "info": "Topik masuk mainthub/<id>/ingest, balasan mainthub/<id>/ack. Firmware baru menahan data di antrean sampai ack 200 diterima.",
+    "x": 300,
+    "y": 430,
+    "wires": []
+  },
+  {
+    "id": "d_in",
+    "type": "mqtt in",
+    "z": "mh_tab",
+    "name": "",
+    "topic": "mainthub/+/ingest",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "mh_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 480,
+    "wires": [
+      [
+        "d_fn"
+      ]
+    ]
+  },
+  {
+    "id": "d_fn",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Validasi & siapkan",
+    "func": "// Cabang D: perangkat RTU mengirim ke mainthub/<ID-PERANGKAT>/ingest  {\"key\":\"mhk_...\",\"readings\":[...],\"device\":{...}}\n// Kunci perangkat ikut di pesan (broker berpassword, jaringan internal). Bila tidak ada, dipakai MAINTHUB_KEY milik tab ini.\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst dev = (msg.topic || '').split('/')[1] || '';\nconst ack = (code, extra) => ({ topic: 'mainthub/' + dev + '/ack', payload: Object.assign({ code }, extra || {}), qos: 0, retain: false });\nlet d = msg.payload; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) { node.warn('JSON tidak valid dari ' + dev); return [null, ack(400, { error: 'json' })]; } }\nif (Buffer.isBuffer(d)) { try { d = JSON.parse(d.toString()); } catch (e) { return [null, ack(400, { error: 'json' })]; } }\nconst key = (d && d.key) || env.get('MAINTHUB_KEY');\nif (!base || !key) { node.error('MAINTHUB_URL / kunci perangkat belum diisi'); return [null, ack(500, { error: 'gateway belum dikonfigurasi' })]; }\nif (!d || !Array.isArray(d.readings) || !d.readings.length || d.readings.length > 500) return [null, ack(400, { error: 'readings kosong atau > 500' })];\nconst body = { readings: d.readings }; if (d.device && typeof d.device === 'object') body.device = d.device;\nreturn [{ dev, url: base + '/api/ingest/readings', method: 'POST', headers: { 'x-api-key': key, 'content-type': 'application/json' }, payload: body }, null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 480,
+    "wires": [
+      [
+        "d_req"
+      ],
+      [
+        "d_out"
+      ]
+    ]
+  },
+  {
+    "id": "d_req",
+    "type": "http request",
+    "z": "mh_tab",
+    "name": "Kirim ke MaintHub",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 640,
+    "y": 460,
+    "wires": [
+      [
+        "d_rp"
+      ]
+    ]
+  },
+  {
+    "id": "d_rp",
+    "type": "function",
+    "z": "mh_tab",
+    "name": "Buat ack",
+    "func": "// Balas perangkat lewat mainthub/<ID>/ack dengan kode ala HTTP (200 = diterima, 401 = kunci ditolak, 400 = format ditolak, lainnya = ulangi nanti).\nconst code = msg.statusCode || 502;\nif (code >= 400) node.warn('MaintHub membalas ' + code + ' untuk ' + msg.dev + ': ' + JSON.stringify(msg.payload).slice(0, 200));\nelse if (msg.payload && msg.payload.errors && msg.payload.errors.length) node.warn('Sebagian ditolak (' + msg.dev + '): ' + JSON.stringify(msg.payload.errors).slice(0, 300));\nnode.status({ fill: code === 200 ? 'green' : 'red', shape: 'dot', text: msg.dev + ' ' + code });\nreturn { topic: 'mainthub/' + msg.dev + '/ack', payload: { code }, qos: 0, retain: false };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 830,
+    "y": 460,
+    "wires": [
+      [
+        "d_out"
+      ]
+    ]
+  },
+  {
+    "id": "d_out",
+    "type": "mqtt out",
+    "z": "mh_tab",
+    "name": "ack ke perangkat",
+    "topic": "",
+    "qos": "0",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mh_broker",
+    "x": 1040,
+    "y": 480,
+    "wires": []
+  }
 ]

@@ -1,4 +1,6 @@
-// Contoh konfigurasi. Di MaintHub, menu Perangkat ESP32 membuat file ini otomatis dengan kunci asli. JANGAN commit kunci asli ke Git.
+// NILAI AWAL (default). Pengaturan sebenarnya dapat diganti TANPA flash ulang lewat portal Wi-Fi "MaintHub-RTU-xxxx" atau perintah serial `cfg <kode>`
+// (kode dibuat otomatis di menu Perangkat RTU). Karena itu satu firmware yang sama bisa dipakai di semua perangkat.
+// Menu Perangkat RTU juga membuat file ini dengan kunci asli. JANGAN commit kunci asli ke Git.
 #pragma once
 
 // ---- Jaringan (isi, atau set tanpa flash ulang lewat Serial Monitor: wifi NAMA PASSWORD) ----
@@ -11,6 +13,12 @@
 #define MH_ASSET         "PMP-203"
 #define MH_PLANT         ""
 #define DEVICE_ID        "esp-000000"
+// Jalur kirim: 0 = HTTP langsung ke MaintHub (MH_URL), 1 = MQTT ke broker (Mosquitto) lalu Node-RED meneruskan ke MaintHub
+#define MH_TRANSPORT     0
+#define MQTT_HOST        ""
+#define MQTT_PORT        1883
+#define MQTT_USER        ""
+#define MQTT_PASS        ""
 // HTTPS: untuk memverifikasi server, definisikan MH_ROOT_CA berisi sertifikat root (PEM). Tanpa ini koneksi tetap terenkripsi tetapi server tidak diverifikasi.
 // #define MH_ROOT_CA "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n"
 
@@ -35,6 +43,8 @@
 #define RUN_ACTIVE_LEVEL LOW
 #define PIN_I2C_SDA      21
 #define PIN_I2C_SCL      22
+#define PIN_PORTAL       0     // tombol BOOT: tahan 3 detik untuk membuka portal konfigurasi; -1 = nonaktif
+// #define PORTAL_PASS   "mainthub1"   // kata sandi Wi-Fi portal (min. 8 karakter)
 
 // ---- Deteksi mesin jalan & kalibrasi ----
 #define RUN_CURRENT_A    1.5f

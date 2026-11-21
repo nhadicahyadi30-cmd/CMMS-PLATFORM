@@ -70,11 +70,19 @@ Alur: ESP32 → Node-RED → MaintHub. Keuntungan: API key tidak ada di ESP32, d
 1. Node-RED → menu ☰ → *Import* → pilih `tools/nodered/mainthub-flow.json` → Deploy.
 2. Buka tab **MaintHub gateway** → *Environment Variables*: isi `MAINTHUB_URL` (mis. `http://192.168.1.50`) dan `MAINTHUB_KEY`. Ikon node *GET /api/ingest/ping* menjadi hijau bila kunci benar.
 3. Di `config.h` ESP32: `MH_URL "http://IP-NODERED:1880/mainthub/ingest"` dan `MH_API_KEY ""`.
-4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Firmware ESP32 di repo ini memakai jalur HTTP, bukan MQTT.
+4. Jalur MQTT (opsional, untuk perangkat/gateway lain): publish JSON ke `mainthub/<KODE-ASET>/telemetry`, mis. `{"oil_temp":71.2,"running_hours":1204.5}`. Ubah alamat broker pada node *Broker lokal*. Alur Node-RED ini **sudah memuat** node `mqtt in` (jalur B), jadi untuk MQTT cukup arahkan broker. Firmware ESP32 di repo ini memakai jalur HTTP, bukan MQTT; varian firmware MQTT belum dibuat.
 Catatan: endpoint `/mainthub/ingest` di Node-RED tidak memakai autentikasi. Batasi di jaringan internal/VLAN, atau aktifkan `httpNodeAuth` di settings.js Node-RED.
 
 ### 5c. Mode demo (data dummy, tanpa sensor)
 Untuk mencoba alur lengkap sebelum sensor terpasang: centang **Mode demo** saat mendaftarkan perangkat (atau set `#define DEMO_MODE 1` di `config.h`). ESP32 mengirim data buatan (suhu oli ±62 °C yang naik pelan sampai +25 °C, arus ±18 A, getaran kecil, mesin "jalan" terus, running hour bertambah). Library OneWire/DallasTemperature tidak diperlukan. Serial Monitor menampilkan `*** MODE DEMO ***`. Ketik `sethours 1200` bila ingin running hour mulai dari angka tertentu. Pakai **aset uji**: data dummy bercampur dengan data asli di aset yang sama. Ubah `DEMO_MODE` ke 0 dan upload ulang untuk beralih ke sensor sungguhan.
+
+### 5d. Beralih dari demo ke sensor sungguhan (daftar periksa)
+1. **Pasang perangkat baru, jangan pakai ulang yang demo**: di menu Perangkat ESP32 daftarkan perangkat untuk mesin sebenarnya, **kosongkan** "Mode demo", centang hanya sensor yang benar-benar terpasang. Unduh `config.h`-nya. Nonaktifkan perangkat demo lama supaya data dummy tidak tercampur.
+2. Kabel sesuai bagian 3 dengan listrik **mati dan terkunci (LOTO)**. Sensor arus SCT-013 dijepit pada satu kabel fasa saja, tanpa membuka kabel daya. Pemasangan di panel dikerjakan teknisi listrik berwenang.
+3. Pastikan `DEMO_MODE` bernilai `0` di `config.h`, upload, lalu buka Serial Monitor: nilai suhu/arus/getar harus masuk akal (arus ≈ 0 saat motor mati).
+4. Kalibrasi arus dan suhu (bagian 7), lalu isi jam hour meter fisik dengan perintah serial `sethours <jam>`.
+5. Biarkan data terkumpul beberapa hari sebelum menetapkan batas alarm; getaran dibaca sebagai tren terhadap baseline.
+6. Cek: status Online di Perangkat ESP32, kartu mesin di Monitoring Mesin hidup, dan antrean mendekati 0.
 
 ## 6. Cara kerja & batasannya
 - **Running hour** bertambah hanya saat input status jalan aktif (atau arus > `RUN_CURRENT_A` jika tanpa kabel kontak, dengan resolusi ±30 dtk). Disimpan ke flash tiap 10 menit dan setiap mesin start/stop; listrik mati paling banyak kehilangan 10 menit hitungan.

@@ -1,0 +1,208 @@
+[
+  {
+    "id": "pm_tab",
+    "type": "tab",
+    "label": "Power meter",
+    "disabled": false,
+    "info": "Power meter (Modbus) -> Node-RED -> MaintHub /api/ingest/meters. Isi MAINTHUB_URL dan MAINTHUB_KEY (kunci dari menu Telemetri, boleh khusus plant). Daftarkan meter di MaintHub lebih dulu.",
+    "env": [
+      {
+        "name": "MAINTHUB_URL",
+        "value": "http://nginx",
+        "type": "str"
+      },
+      {
+        "name": "MAINTHUB_KEY",
+        "value": "mhk_ISI_KUNCI",
+        "type": "str"
+      }
+    ]
+  },
+  {
+    "id": "pm_c1",
+    "type": "comment",
+    "z": "pm_tab",
+    "name": "1) Uji tanpa hardware: klik tombol inject kiri",
+    "info": "Mengirim nilai contoh untuk meter MTR-LINE1. Daftarkan dulu meter dengan kode itu.",
+    "x": 230,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "pm_i1",
+    "type": "inject",
+    "z": "pm_tab",
+    "name": "Kirim contoh",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 90,
+    "wires": [
+      [
+        "pm_ex"
+      ]
+    ]
+  },
+  {
+    "id": "pm_ex",
+    "type": "function",
+    "z": "pm_tab",
+    "name": "Contoh register",
+    "func": "// Contoh tanpa hardware: dua register float32 (urutan biasa) bernilai 12345.5 kWh. Pastikan meter MTR-LINE1 sudah didaftarkan.\nconst b = Buffer.alloc(4); b.writeFloatBE(12345.5, 0);\nreturn { meter: 'MTR-LINE1', format: 'f32', scale: 1, payload: [b.readUInt16BE(0), b.readUInt16BE(2)] };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 340,
+    "y": 90,
+    "wires": [
+      [
+        "pm_dec"
+      ]
+    ]
+  },
+  {
+    "id": "pm_c2",
+    "type": "comment",
+    "z": "pm_tab",
+    "name": "2) Hardware: Daftar meter -> (pasang node Modbus Flex Getter di sini) -> Decode & kirim",
+    "info": "Palet: node-red-contrib-modbus. Alamat register berbeda tiap merek/tipe meter: lihat manualnya. Lihat docs/POWER_METER.md.",
+    "x": 400,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "pm_i2",
+    "type": "inject",
+    "z": "pm_tab",
+    "name": "Tiap 1 menit",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "60",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 210,
+    "wires": [
+      [
+        "pm_prep"
+      ]
+    ]
+  },
+  {
+    "id": "pm_prep",
+    "type": "function",
+    "z": "pm_tab",
+    "name": "Daftar meter",
+    "func": "// Daftar meter yang dibaca. Ubah sesuai pabrik Anda, lalu sambungkan keluaran node ini ke node \"Modbus Flex Getter\"\n// (pasang palet node-red-contrib-modbus, atur koneksinya ke gateway RS-485/Modbus TCP), dan keluaran Modbus ke \"Decode & kirim\".\n// meter  = kode yang didaftarkan di MaintHub (Electrical & Utility -> Pengaturan -> Power meter)\n// unitid = alamat slave Modbus; address = alamat register energi kumulatif (LIHAT MANUAL meter Anda), quantity = jumlah register\n// format = f32 | f32sw | u32 | u32sw | u16  (urutan word; coba f32sw bila angka aneh)   scale = pengali ke kWh (mis. 0.001 bila register dalam Wh)\nconst METERS = [\n  { meter: 'MTR-LINE1', unitid: 1, address: 342, quantity: 2, fc: 3, format: 'f32', scale: 1 },\n  { meter: 'MTR-BOILER', unitid: 2, address: 342, quantity: 2, fc: 3, format: 'f32', scale: 1 },\n];\nreturn [METERS.map((m) => ({ meter: m.meter, format: m.format, scale: m.scale, payload: { fc: m.fc, unitid: m.unitid, address: m.address, quantity: m.quantity } }))];",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 330,
+    "y": 210,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "pm_dec",
+    "type": "function",
+    "z": "pm_tab",
+    "name": "Decode & kirim",
+    "func": "// Masukan: msg.payload = array register 16-bit hasil baca Modbus, msg.meter = kode meter, msg.format dan msg.scale (lihat node \"Daftar meter\").\nconst base = (env.get('MAINTHUB_URL') || '').replace(/\\/+$/, '');\nconst key = env.get('MAINTHUB_KEY');\nconst bad = (t) => { node.warn(t); node.status({ fill: 'red', shape: 'ring', text: t.slice(0, 40) }); return [null, { payload: t }]; };\nif (!base || !key) return bad('isi MAINTHUB_URL dan MAINTHUB_KEY di tab ini');\nconst r = msg.payload;\nif (!Array.isArray(r) || !r.length || !r.every((x) => Number.isInteger(x) && x >= 0 && x <= 0xFFFF)) return bad('register tidak valid untuk ' + msg.meter);\nif (!msg.meter) return bad('msg.meter kosong');\nconst fmt = msg.format || 'f32'; const scale = Number(msg.scale === undefined ? 1 : msg.scale);\nlet v;\nif (fmt === 'u16') v = r[0];\nelse if (r.length < 2) return bad('format ' + fmt + ' butuh 2 register');\nelse {\n  const swap = fmt.endsWith('sw'); const hi = swap ? r[1] : r[0]; const lo = swap ? r[0] : r[1];\n  const b = Buffer.alloc(4); b.writeUInt16BE(hi, 0); b.writeUInt16BE(lo, 2);\n  v = fmt.startsWith('f32') ? b.readFloatBE(0) : b.readUInt32BE(0);\n}\nv = v * scale;\nif (!Number.isFinite(v) || v < 0) return bad('nilai tidak masuk akal (' + v + ') untuk ' + msg.meter + ': cek format/alamat register');\nnode.status({ fill: 'green', shape: 'dot', text: msg.meter + ' ' + v.toFixed(2) + ' kWh' });\nreturn [{ url: base + '/api/ingest/meters', method: 'POST', headers: { 'x-api-key': key, 'content-type': 'application/json' }, payload: { meters: [{ meter: msg.meter, kwh: Number(v.toFixed(3)) }] } }, null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 620,
+    "y": 110,
+    "wires": [
+      [
+        "pm_req"
+      ],
+      [
+        "pm_dbg"
+      ]
+    ]
+  },
+  {
+    "id": "pm_req",
+    "type": "http request",
+    "z": "pm_tab",
+    "name": "Kirim ke MaintHub",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 850,
+    "y": 90,
+    "wires": [
+      [
+        "pm_rp"
+      ]
+    ]
+  },
+  {
+    "id": "pm_rp",
+    "type": "function",
+    "z": "pm_tab",
+    "name": "Status",
+    "func": "const ok = msg.statusCode === 200 && msg.payload && !(msg.payload.errors && msg.payload.errors.length);\nnode.status({ fill: ok ? 'green' : 'red', shape: 'dot', text: ok ? 'diterima ' + msg.payload.accepted + ' (hari dihitung: ' + msg.payload.daysUpdated + ')' : 'GAGAL ' + msg.statusCode });\nif (!ok) node.warn('MaintHub: ' + msg.statusCode + ' ' + JSON.stringify(msg.payload).slice(0, 300));\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1040,
+    "y": 90,
+    "wires": [
+      [
+        "pm_dbg"
+      ]
+    ]
+  },
+  {
+    "id": "pm_dbg",
+    "type": "debug",
+    "z": "pm_tab",
+    "name": "Hasil",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 1220,
+    "y": 120,
+    "wires": []
+  }
+]

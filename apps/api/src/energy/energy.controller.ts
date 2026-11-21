@@ -4,6 +4,7 @@ import { PoolClient } from 'pg';
 import { DbService } from '../db/db.service';
 import { dbCtx, RequireModule, Roles } from '../auth/auth.guard';
 import { mapDbError, parse } from '../common/http';
+import { MeterDto, meterConn } from './meters.rules';
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD');
 const SHIFTS = ['pagi', 'siang', 'malam'] as const;
@@ -74,13 +75,51 @@ export class EnergyController {
     return this.run(req, async (c) => { await c.query('delete from energy_tariffs where id = $1', [id]); return { ok: true }; });
   }
 
+  // ---------- power meter ----------
+  @Get('meters')
+  meters(@Query('plantId') plantId: string | undefined, @Req() req: any) {
+    const pid = plantId ? parse(z.string().uuid(), plantId) : null;
+    return this.run(req, async (c) => (await c.query(
+      `select m.id, m.plant_id as "plantId", m.unit_id as "unitId", u.code as "unitCode", u.name as "unitName", m.code, m.name, m.multiplier::float8 as multiplier, m.active, m.last_seen as "lastSeen", m.last_kwh as "lastKwh",
+              (select count(*)::int from energy_entries e where e.unit_id = m.unit_id and e.source = 'meter') as "autoDays"
+         from energy_meters m join energy_units u on u.id = m.unit_id where ($1::uuid is null or m.plant_id = $1) order by m.active desc, u.code, m.code`, [pid]))
+      .rows.map((r: any) => ({ ...r, conn: r.active ? meterConn(r.lastSeen ? new Date(r.lastSeen).getTime() : null) : 'offline' })));
+  }
+  @Post('meters') @Roles('admin', 'supervisor', 'planner')
+  addMeter(@Body() b: unknown, @Req() req: any) {
+    const d = parse(MeterDto, b);
+    return this.run(req, async (c) => {
+      const r = (await c.query(`insert into energy_meters (org_id, plant_id, unit_id, code, name, multiplier) values ($1,$2,$3,$4,$5,$6) returning id, code, name`, [req.user.org, d.plantId, d.unitId, d.code, d.name, d.multiplier])).rows[0];
+      await this.audit(c, req.user, 'energy.meter.create', r.id, { code: d.code, unitId: d.unitId }); return r;
+    });
+  }
+  @Patch('meters/:id') @Roles('admin', 'supervisor', 'planner')
+  patchMeter(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @Req() req: any) {
+    const d = parse(z.object({ name: z.string().trim().min(2).max(120).optional(), multiplier: z.number().gt(0).max(1e6).optional(), active: z.boolean().optional() }), b);
+    return this.run(req, async (c) => {
+      const r = await c.query('update energy_meters set name = coalesce($1, name), multiplier = coalesce($2, multiplier), active = coalesce($3, active) where id = $4 returning id, code, name, active', [d.name ?? null, d.multiplier ?? null, d.active ?? null, id]);
+      if (!r.rows[0]) throw new HttpException('Meter tidak ditemukan', HttpStatus.NOT_FOUND);
+      await this.audit(c, req.user, 'energy.meter.update', id, d); return r.rows[0];
+    });
+  }
+  /** Hitung ulang kWh harian dari pembacaan meter (mis. setelah mengubah multiplier atau data terlambat). Maks 62 hari ke belakang. */
+  @Post('meters/rollup') @Roles('admin', 'supervisor', 'planner')
+  rollup(@Body() b: unknown, @Req() req: any) {
+    const d = parse(z.object({ plantId: z.string().uuid(), days: z.number().int().min(1).max(62).default(14) }), b);
+    return this.run(req, async (c) => {
+      const rows = (await c.query(`select u.id, (now() at time zone p.timezone)::date as today from energy_units u join plants p on p.id = u.plant_id where u.plant_id = $1 and u.active`, [d.plantId])).rows;
+      let days = 0; for (const u of rows) days += Number((await c.query('select energy_meter_rollup($1, $2::date, $3) as n', [u.id, u.today, d.days])).rows[0].n);
+      await this.audit(c, req.user, 'energy.meter.rollup', d.plantId, { days: d.days, written: days }); return { daysWritten: days };
+    });
+  }
+
   // ---------- entri ----------
   @Get('entries')
   entries(@Query() q: unknown, @Req() req: any) {
     const d = parse(RangeQ.extend({ unitId: z.string().uuid().optional() }), q);
     return this.run(req, async (c) => (await c.query(
       `select e.id, e.unit_id as "unitId", u.code as "unitCode", e.period_kind as "periodKind", e.date_from as "dateFrom", e.date_to as "dateTo", e.shift, e.po_code as "poCode", e.sku,
-              e.kwh, e.ton, e.note, x.full_name as "byName"
+              e.kwh, e.ton, e.note, e.source, x.full_name as "byName"
          from energy_entries e join energy_units u on u.id = e.unit_id left join users x on x.id = e.by_user
         where e.date_to >= $1 and e.date_from <= $2 and ($3::uuid is null or e.plant_id = $3) and ($4::uuid is null or e.unit_id = $4)
         order by e.date_from desc, u.code limit 500`, [d.from, d.to, d.plantId ?? null, d.unitId ?? null])).rows);

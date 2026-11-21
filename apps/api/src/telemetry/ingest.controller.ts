@@ -5,6 +5,7 @@ import { Public } from '../auth/auth.guard';
 import { parse } from '../common/http';
 import { RateLimiter } from '../leads/leads.rules';
 import { parseHeartbeat } from './device.rules';
+import { MeterIngestDto, MeterReading } from '../energy/meters.rules';
 import { FRESH_MS, IngestDto, Reading, alarmMessage, breach, confirmedSeverity, num, parseKey, parseTs, secretMatches } from './telemetry.rules';
 
 class ItemError extends Error {}
@@ -61,6 +62,52 @@ export class IngestController {
           out.device = r.rows[0] ? 'ok' : 'unregistered';
           await c.query('release savepoint hb');
         } catch (e: any) { await c.query('rollback to savepoint hb'); this.log.warn(`heartbeat: ${e?.message}`); }
+      }
+    });
+    return out;
+  }
+
+  /** Pembacaan power meter (kWh kumulatif per meter). kWh harian per unit dihitung otomatis dari selisih pembacaan. */
+  @Public() @Post('meters') @HttpCode(200)
+  async meters(@Body() b: unknown, @Req() req: any) {
+    const k = await this.authenticate(req);
+    const { meters } = parse(MeterIngestDto, b) as { meters: MeterReading[] };
+    const out = { serverTime: new Date().toISOString(), received: meters.length, accepted: 0, duplicates: 0, daysUpdated: 0, errors: [] as { index: number; error: string }[] };
+    await this.db.tx(this.ctx(k), async (c) => {
+      const cache = new Map<string, any>(); const units = new Set<string>();
+      for (let i = 0; i < meters.length; i++) {
+        const r = meters[i]; await c.query('savepoint item');
+        try {
+          const ck = `${r.plant ?? ''}|${r.meter.toLowerCase()}`;
+          if (!cache.has(ck)) {
+            const rows = (await c.query(`select m.id, m.unit_id, m.org_id, m.active from energy_meters m join plants p on p.id = m.plant_id where lower(m.code) = lower($1) and ($2::text is null or p.code::text = $2) limit 2`, [r.meter, r.plant ?? null])).rows;
+            cache.set(ck, rows.length === 1 ? rows[0] : rows.length > 1 ? 'ambiguous' : null);
+          }
+          const m = cache.get(ck);
+          if (m === null) throw new ItemError(`meter "${r.meter}" belum didaftarkan (menu Electrical & Utility → Pengaturan) atau di luar plant kunci ini`);
+          if (m === 'ambiguous') throw new ItemError(`kode meter "${r.meter}" ada di beberapa plant; sertakan field "plant"`);
+          if (!m.active) throw new ItemError(`meter "${r.meter}" nonaktif`);
+          const ts = parseTs(r.ts, Date.now()); const kwh = r.kwh as unknown as number; const kw = r.kw === undefined ? null : (r.kw as unknown as number);
+          const ins = await c.query('insert into energy_meter_readings (meter_id, ts, kwh, kw, org_id) values ($1,$2,$3,$4,$5) on conflict (meter_id, ts) do nothing returning ts', [m.id, ts, kwh, kw, m.org_id]);
+          if (!ins.rows[0]) out.duplicates++;
+          else {
+            out.accepted++; units.add(m.unit_id);
+            await c.query('update energy_meters set last_seen = $2, last_kwh = $3 where id = $1 and (last_seen is null or last_seen <= $2)', [m.id, ts, kwh]);
+          }
+          await c.query('release savepoint item');
+        } catch (e: any) {
+          await c.query('rollback to savepoint item');
+          out.errors.push({ index: i, error: e instanceof ItemError || /^ts /.test(e?.message ?? '') ? e.message : 'gagal menyimpan pembacaan meter' });
+          if (!(e instanceof ItemError) && !/^ts /.test(e?.message ?? '')) this.log.warn(`meter item ${i}: ${e?.message}`);
+        }
+      }
+      // Hitung ulang kWh harian (tiga hari terakhir) untuk unit yang tersentuh; paling sering sekali per 5 menit per unit.
+      for (const u of units) {
+        await c.query('savepoint ru');
+        try {
+          const r = await c.query(`select energy_meter_rollup(u.id, (now() at time zone p.timezone)::date, 3) as n from energy_units u join plants p on p.id = u.plant_id where u.id = $1 and (u.meter_rollup_at is null or u.meter_rollup_at < now() - interval '5 minutes')`, [u]);
+          out.daysUpdated += Number(r.rows[0]?.n ?? 0); await c.query('release savepoint ru');
+        } catch (e: any) { await c.query('rollback to savepoint ru'); this.log.warn(`rollup meter: ${e?.message}`); }
       }
     });
     return out;

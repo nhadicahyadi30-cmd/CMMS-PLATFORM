@@ -12,7 +12,7 @@ export default function HelpButton() {
   if (!h) return null;
   return (
     <>
-      <button className="fixed bottom-5 right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-blue-700 text-lg font-semibold text-white shadow-lg transition hover:bg-blue-800 print:hidden" aria-label="Bantuan: cara menggunakan halaman ini" title="Cara menggunakan halaman ini" onClick={() => setOpen(true)}>?</button>
+      <button className="fixed bottom-20 right-4 z-40 lg:bottom-5 lg:right-5 flex h-11 w-11 items-center justify-center rounded-full bg-blue-700 text-lg font-semibold text-white shadow-lg transition hover:bg-blue-800 print:hidden" aria-label="Bantuan: cara menggunakan halaman ini" title="Cara menggunakan halaman ini" onClick={() => setOpen(true)}>?</button>
       {open && (
         <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label={`Bantuan ${h.title}`}>
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />

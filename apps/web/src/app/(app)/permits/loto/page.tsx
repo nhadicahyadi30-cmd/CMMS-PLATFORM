@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import { api } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import Field from '@/components/Field';
@@ -16,7 +17,7 @@ export default function LotoMaster() {
     try { await api('/loto-points', { method: 'POST', body: { plantId, assetId, seq, ...f } }); setF({ description: '', energyType: 'electrical', method: '' }); list.reload(); } catch (e: any) { setMsg(e.issues ? e.issues.map((i: any) => i.message).join('; ') : e.message); }
   }
   async function toggle(x: any) { try { await api(`/loto-points/${x.id}`, { method: 'PUT', body: { plantId: x.plantId, assetId: x.assetId, seq: x.seq, description: x.description, energyType: x.energyType, method: x.method, active: !x.active } }); list.reload(); } catch (e: any) { setMsg(e.message); } }
-  async function del(x: any) { if (!confirm(`Hapus titik "${x.description}"?`)) return; try { await api(`/loto-points/${x.id}`, { method: 'DELETE' }); list.reload(); } catch (e: any) { setMsg(e.message); } }
+  async function del(x: any) { if (!(await askConfirm(`Hapus titik "${x.description}"?`, { danger: true }))) return; try { await api(`/loto-points/${x.id}`, { method: 'DELETE' }); list.reload(); } catch (e: any) { setMsg(e.message); } }
   return (
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Titik Isolasi (LOTO) per Aset</h1>

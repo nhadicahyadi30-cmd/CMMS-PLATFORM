@@ -1,5 +1,6 @@
 'use client';
 import { FormEvent, useMemo, useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import { api, apiDownload, ApiError, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import { Freq, periodFor } from '@/lib/report-period';
@@ -107,7 +108,7 @@ function Schedules({ emailOn, plants }: { emailOn: boolean; plants: { id: string
     setBusy(id); setErr(''); setInfo('');
     try {
       if (what === 'toggle') await api(`/reports/schedules/${id}`, { method: 'PATCH', body: { active: !active } });
-      else if (what === 'del') { if (!confirm('Hapus jadwal ini?')) return; await api(`/reports/schedules/${id}`, { method: 'DELETE' }); }
+      else if (what === 'del') { if (!(await askConfirm('Hapus jadwal ini?', { danger: true }))) return; await api(`/reports/schedules/${id}`, { method: 'DELETE' }); }
       else { const r = await api(`/reports/schedules/${id}/run-now`, { method: 'POST' }); setInfo(r.ok ? 'Laporan dikirim.' : ''); if (!r.ok) setErr(`Gagal mengirim: ${r.error}`); }
       list.reload();
     } catch (x) { setErr(msg(x)); } finally { setBusy(''); }

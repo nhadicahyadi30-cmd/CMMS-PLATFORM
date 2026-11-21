@@ -1,5 +1,7 @@
 'use client';
 import { FormEvent, useState } from 'react';
+import Loading from '@/components/Loading';
+import { askConfirm } from '@/components/Confirm';
 import { api, ApiError, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 
@@ -24,7 +26,7 @@ export default function SkillsPage() {
 
   const cell = (t: string, s: string) => d?.cells.find((c) => c.technicianId === t && c.skillId === s);
   async function addSkill(e: FormEvent) { e.preventDefault(); setErr(''); try { await api('/workforce/skills', { method: 'POST', body: sk }); setSk({ code: '', name: '', minCoverage: 2 }); mx.reload(); } catch (x) { setErr(msg(x)); } }
-  async function delSkill(id: string, code: string) { if (!confirm(`Hapus skill ${code}? Level semua teknisi untuk skill ini ikut terhapus, dan WO/PM yang memakainya menjadi tanpa syarat skill.`)) return; try { await api(`/workforce/skills/${id}`, { method: 'DELETE' }); mx.reload(); } catch (x) { setErr(msg(x)); } }
+  async function delSkill(id: string, code: string) { if (!(await askConfirm(`Hapus skill ${code}? Level semua teknisi untuk skill ini ikut terhapus, dan WO/PM yang memakainya menjadi tanpa syarat skill.`, { danger: true }))) return; try { await api(`/workforce/skills/${id}`, { method: 'DELETE' }); mx.reload(); } catch (x) { setErr(msg(x)); } }
   async function save(e: FormEvent) {
     e.preventDefault(); if (!edit) return; setErr('');
     try { await api('/workforce/matrix', { method: 'PUT', body: { technicianId: edit.technicianId, skillId: edit.skillId, level: edit.level, certifiedUntil: edit.certifiedUntil || null } }); setEdit(null); mx.reload(); } catch (x) { setErr(msg(x)); }
@@ -36,6 +38,7 @@ export default function SkillsPage() {
       <div><h1 className="text-xl font-semibold">Matriks Skill Teknisi</h1><p className="text-sm text-slate-600">Level kemampuan tiap teknisi per skill. Level <b>3 (Mandiri)</b> ke atas dihitung sebagai tercakup. Matriks dipakai untuk menandai risiko (skill hanya dikuasai satu orang atau tidak ada di satu shift) dan merekomendasikan teknisi saat menugaskan WO.</p></div>
       {err && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{err}</p>}
       {mx.error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{mx.error}</p>}
+      {mx.loading && !d && <Loading />}
       {d && <>
         <div className="flex flex-wrap gap-2 text-xs" aria-label="Keterangan level">{d.levels.map((l, i) => <span key={l} className={`rounded border px-2 py-0.5 ${LV[i]}`}>{i} = {l}</span>)}<span className="rounded border px-2 py-0.5">⚠ sertifikat segera habis (≤60 hari)</span><span className="rounded border px-2 py-0.5">✕ sertifikat lewat</span></div>
 

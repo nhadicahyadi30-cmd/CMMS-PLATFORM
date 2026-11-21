@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { askConfirm, askReason } from '@/components/Confirm';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { api, getUser } from '@/lib/api';
@@ -57,7 +58,7 @@ export default function PermitDetail() {
                   {['requested', 'approved'].includes(p.status) && has('edit') && <button className="btn-ghost" disabled={busy} onClick={() => act(`/points/${x.id}`, undefined, 'DELETE')}>Hapus</button>}</div></div>
               <ul className="mt-2 space-y-1 text-sm">{x.locks.map((l: any) => (
                 <li key={l.id} className="flex flex-wrap items-center gap-2"><span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs">🔒 {l.lockNo}</span><span>{l.appliedBy}</span>
-                  {l.removedAt ? <span className="text-xs text-slate-500">dilepas {fmt(l.removedAt)} oleh {l.removedBy}{l.overrideReason ? ` (${l.overrideReason})` : ''}</span> : p.status === 'active' && has('unlock') && <button className="btn-ghost" disabled={busy} onClick={() => { if (l.appliedById === me.sub) act(`/locks/${l.id}/remove`, {}); else { const r = prompt('Gembok ini dipasang orang lain. Alasan melepas?'); if (r) act(`/locks/${l.id}/remove`, { reason: r }); } }}>Lepas</button>}</li>))}</ul>
+                  {l.removedAt ? <span className="text-xs text-slate-500">dilepas {fmt(l.removedAt)} oleh {l.removedBy}{l.overrideReason ? ` (${l.overrideReason})` : ''}</span> : p.status === 'active' && has('unlock') && <button className="btn-ghost" disabled={busy} onClick={async () => { if (l.appliedById === me.sub) act(`/locks/${l.id}/remove`, {}); else { const r = await askReason('Gembok ini dipasang orang lain. Melepasnya akan dicatat permanen. Apa alasannya?', { danger: true, ok: 'Lepas gembok' }); if (r) act(`/locks/${l.id}/remove`, { reason: r }); } }}>Lepas</button>}</li>))}</ul>
               {has('lock') && ['handed_over', 'active'].includes(p.status) && !x.zeroVerifiedAt && <div className="mt-2 flex gap-2"><input className="input max-w-[12rem]" placeholder="Nomor gembok pribadi" value={lockNo[x.id] ?? ''} onChange={(e) => setLockNo({ ...lockNo, [x.id]: e.target.value })} /><button className="btn" disabled={busy || !(lockNo[x.id] ?? '').trim()} onClick={async () => { await act(`/points/${x.id}/locks`, { lockNo: lockNo[x.id] }); setLockNo({ ...lockNo, [x.id]: '' }); }}>Pasang gembok</button></div>}
             </div>))}
           {p.status === 'handed_over' && <p className="text-xs text-slate-500">{allLocked ? 'LOTO lengkap: semua titik bergembok dan nol energi terverifikasi.' : 'Mulai kerja hanya bisa setelah setiap titik punya gembok dan terverifikasi nol energi.'}</p>}
@@ -65,12 +66,12 @@ export default function PermitDetail() {
 
       <div className="card flex flex-wrap items-center gap-2">
         {has('approve') && <button className="btn" disabled={busy} onClick={() => act('/approve')}>Setujui</button>}
-        {has('reject') && <button className="btn-ghost" disabled={busy} onClick={() => { const r = prompt('Alasan penolakan?'); if (r) act('/reject', { reason: r }); }}>Tolak</button>}
+        {has('reject') && <button className="btn-ghost" disabled={busy} onClick={async () => { const r = await askReason('Izin ini akan ditolak. Tulis alasannya agar pemohon bisa memperbaiki.', { ok: 'Tolak izin', danger: true }); if (r) act('/reject', { reason: r }); }}>Tolak</button>}
         {has('handover') && <><input className="input max-w-xs" placeholder="Catatan serah area (opsional)" value={note} onChange={(e) => setNote(e.target.value)} /><button className="btn" disabled={busy} onClick={() => act('/handover', { note })}>Serahkan area</button></>}
-        {has('activate') && p.status === 'handed_over' && <button className="btn" disabled={busy || (p.requiresLoto && !allLocked)} onClick={() => act('/activate')}>Mulai pekerjaan</button>}
-        {has('complete') && p.status === 'active' && <><input className="input max-w-xs" placeholder="Catatan hasil (opsional)" value={note} onChange={(e) => setNote(e.target.value)} /><button className="btn" disabled={busy || openLocks > 0} onClick={() => act('/complete', { note })}>Pekerjaan selesai</button>{openLocks > 0 && <span className="text-xs text-amber-700">Lepas {openLocks} gembok dulu</span>}</>}
-        {has('close') && <button className="btn" disabled={busy} onClick={() => act('/close')}>Terima area kembali & tutup</button>}
-        {has('cancel') && <button className="btn-ghost" disabled={busy} onClick={() => { const r = prompt('Alasan pembatalan?'); if (r) act('/cancel', { reason: r }); }}>Batalkan</button>}
+        {has('activate') && p.status === 'handed_over' && <button className="btn" disabled={busy || (p.requiresLoto && !allLocked)} onClick={async () => { if (await askConfirm('Mulai pekerjaan sekarang? Pastikan semua gembok terpasang dan area sudah aman.', { ok: 'Mulai pekerjaan' })) act('/activate'); }}>Mulai pekerjaan</button>}
+        {has('complete') && p.status === 'active' && <><input className="input max-w-xs" placeholder="Catatan hasil (opsional)" value={note} onChange={(e) => setNote(e.target.value)} /><button className="btn" disabled={busy || openLocks > 0} onClick={async () => { if (await askConfirm('Tandai pekerjaan selesai? Semua orang harus sudah menjauh dari mesin.', { ok: 'Ya, selesai' })) act('/complete', { note }); }}>Pekerjaan selesai</button>{openLocks > 0 && <span className="text-xs text-amber-700">Lepas {openLocks} gembok dulu</span>}</>}
+        {has('close') && <button className="btn" disabled={busy} onClick={async () => { if (await askConfirm('Terima area kembali dan tutup izin? Setelah ditutup, izin tidak bisa diubah.', { ok: 'Terima & tutup' })) act('/close'); }}>Terima area kembali & tutup</button>}
+        {has('cancel') && <button className="btn-ghost" disabled={busy} onClick={async () => { const r = await askReason('Izin ini akan dibatalkan dan tidak bisa dihidupkan lagi. Apa alasannya?', { ok: 'Batalkan izin', danger: true }); if (r) act('/cancel', { reason: r }); }}>Batalkan</button>}
         {!p.actions.length && <span className="text-sm text-slate-500">Tidak ada tindakan untuk peran Anda pada tahap ini.</span>}
         {msg && <span className="text-sm text-red-600" role="alert">{msg}</span>}
       </div>

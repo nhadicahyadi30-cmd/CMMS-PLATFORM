@@ -1,5 +1,6 @@
 'use client';
 import { FormEvent, Fragment, useEffect, useState } from 'react';
+import Loading from '@/components/Loading';
 import { api, ApiError, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 
@@ -42,6 +43,7 @@ export default function TelemetryPage() {
 
   return (
     <div className="space-y-4">
+      {tags.loading && !tags.data && <Loading />}
       <div><h1 className="text-xl font-semibold">Telemetri Mesin</h1><p className="text-sm text-slate-600">Terima data sensor (suhu oli, running hour, getaran, dll.) dari Node-RED atau gateway. Tetapkan batas alarm, dan alarm serta Work Order mengikuti otomatis. Panduan: <code>docs/TELEMETRY.md</code>.</p></div>
       {err && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{err}</p>}
       {ok && <p className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{ok}</p>}

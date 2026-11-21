@@ -6,6 +6,7 @@ import { bootstrap, getUser, logout, User } from '@/lib/api';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
 import HelpButton from './HelpButton';
+import ConfirmHost from './Confirm';
 
 type Icon = string; // path data, gaya garis 24x24
 const I: Record<string, Icon> = {
@@ -28,21 +29,24 @@ const I: Record<string, Icon> = {
   insp: 'M9 4h6l1 2h3v15H5V6h3l1-2Zm-1 9 2 2 4-4M8 18h8',
   ptw: 'M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3Zm-3 9 2.2 2.2L15.5 10',
   fld: 'M5 3h14v18H5V3Zm4 15h6M9 7h6M9 11h6',
+  home: 'M3 11 12 4l9 7v9h-6v-6H9v6H3v-9Z',
+  skill: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
 const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group: string }[] = [
+  { m: 3, href: '/home', label: 'Beranda', icon: 'home', group: 'Operasi' },
   { m: 3, href: '/work-orders', label: 'Work Order', icon: 'wo', group: 'Operasi' },
   { m: 2, href: '/pm', label: 'Preventive', icon: 'pm', group: 'Operasi' },
   { m: 11, href: '/inspections', label: 'Inspeksi & Checklist', icon: 'insp', group: 'Operasi' },
   { m: 12, href: '/permits', label: 'Izin Kerja (PTW)', icon: 'ptw', group: 'Operasi' },
   { m: 11, href: '/field', label: 'Mode Lapangan', icon: 'fld', group: 'Operasi' },
   { m: 3, href: '/workload', label: 'Beban Teknisi', icon: 'wf', group: 'Operasi' },
-  { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'wf', group: 'Operasi' },
+  { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'skill', group: 'Operasi' },
   { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
   { m: 1, href: '/scan', label: 'Pindai QR Aset', icon: 'qr', group: 'Operasi' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory', icon: 'inv', group: 'Operasi' },
   { m: 9, href: '/kpi', label: 'Dashboard KPI', icon: 'kpi', group: 'Analitik' },
-  { m: 9, href: '/reports', label: 'Reports', icon: 'rep', group: 'Analitik' },
+  { m: 9, href: '/reports', label: 'Laporan', icon: 'rep', group: 'Analitik' },
   { m: 8, href: '/rca', label: 'RCA & Failure', icon: 'rca', group: 'Analitik' },
   { m: 1, href: '/monitoring', label: 'Monitoring Mesin', icon: 'mon', group: 'Analitik' },
   { m: 1, href: '/predictions', label: 'Dashboard Prediksi', icon: 'pred', group: 'Analitik' },
@@ -71,14 +75,16 @@ export default function Shell({ children }: { children: ReactNode }) {
   useEffect(() => setOpen(false), [path]);
   if (!ready || !user) return <div className="flex min-h-screen items-center justify-center bg-ink-950"><div className="animate-pulse"><Logo size={56} dark /></div></div>;
 
-  const items = NAV.filter((n) => user.modules.includes(n.m) && (n.href !== '/import' || user.role !== 'technician') && !(user.role === 'production' && ['/workload', '/skills'].includes(n.href)));
+  const items = NAV.filter((n) => user.modules.includes(n.m) && (n.href !== '/import' || user.role !== 'technician') && !(user.role === 'production' && ['/workload', '/skills'].includes(n.href)) && (n.href !== '/home' || ['technician', 'production'].includes(user.role)));
   const groups = [...new Set(items.map((n) => n.group))];
+  const QUICK: Record<string, string[]> = { technician: ['/home', '/work-orders', '/inspections', '/permits'], production: ['/home', '/work-orders', '/inspections', '/permits'] };
+  const quick = (QUICK[user.role] ?? ['/work-orders', '/pm', '/inspections', '/permits']).map((h) => items.find((n) => n.href === h)).filter((n): n is (typeof items)[number] => !!n).slice(0, 4);
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
   const side = (
     <aside className="flex h-full w-64 flex-col bg-ink-900 text-slate-300">
       <div className="border-b border-white/5 px-5 py-5"><Link href="/work-orders" aria-label="MaintHub beranda"><Logo size={40} tagline /></Link></div>
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm" aria-label="Navigasi utama">
+      <nav className="nav-scroll flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm" aria-label="Navigasi utama">
         {groups.map((g) => (
           <div key={g}>
             <div className="mb-1.5 px-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{g}</div>
@@ -122,8 +128,24 @@ export default function Shell({ children }: { children: ReactNode }) {
         </button></div>
       </div>
       {open && <div className="fixed inset-0 z-40 lg:hidden"><div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} /><div className="absolute inset-y-0 left-0 shadow-2xl">{side}</div></div>}
-      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>
+      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 sm:pb-24 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-ink-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden" aria-label="Pintasan">
+        <div className="mx-auto grid max-w-xl grid-cols-5">
+          {quick.map((n) => {
+            const on = path.startsWith(n.href);
+            return (
+              <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-medium ${on ? 'text-teal-300' : 'text-slate-400'}`}>
+                <NavIcon d={I[n.icon]} /><span className="max-w-full truncate">{n.label.replace('Inspeksi & Checklist', 'Inspeksi').replace('Izin Kerja (PTW)', 'Izin Kerja')}</span>
+              </Link>
+            );
+          })}
+          <button className="flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-medium text-slate-400" onClick={() => setOpen(true)} aria-label="Buka semua menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>Menu
+          </button>
+        </div>
+      </nav>
       <HelpButton />
+      <ConfirmHost />
     </div>
   );
 }

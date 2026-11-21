@@ -1,5 +1,6 @@
 'use client';
 import { FormEvent, useState } from 'react';
+import { askReason } from '@/components/Confirm';
 import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import Field from '@/components/Field';
@@ -125,7 +126,7 @@ function Prs() {
           <div className="flex flex-wrap gap-2">
             {detail.data.status === 'draft' && planner && <button className="btn" onClick={() => act(open, 'submit', {}, 'PR diajukan')}>Ajukan</button>}
             {detail.data.status === 'submitted' && sup && <><button className="btn" onClick={() => act(open, 'approve', {}, 'PR disetujui')}>Setujui</button>
-              <button className="btn-ghost" onClick={() => { const r = prompt('Alasan penolakan?'); if (r) act(open, 'reject', { reason: r }, 'PR ditolak'); }}>Tolak</button></>}
+              <button className="btn-ghost" onClick={async () => { const r = await askReason('Permintaan pembelian ini akan ditolak. Tulis alasannya.', { ok: 'Tolak', danger: true }); if (r) act(open, 'reject', { reason: r }, 'PR ditolak'); }}>Tolak</button></>}
             {detail.data.status === 'approved' && planner && <button className="btn" onClick={() => act(open, 'order', {}, 'PR ditandai dipesan')}>Tandai dipesan</button>}
             {detail.data.status === 'ordered' && planner && <button className="btn" onClick={() => act(open, 'receive', {}, 'Barang diterima, stok bertambah')}>Terima barang</button>}</div></div>
           {detail.data.rejectReason && <p className="text-sm text-red-600">Ditolak: {detail.data.rejectReason}</p>}

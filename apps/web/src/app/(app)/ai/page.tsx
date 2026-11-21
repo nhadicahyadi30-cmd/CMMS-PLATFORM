@@ -1,5 +1,6 @@
 'use client';
 import { ChangeEvent, FormEvent, useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
@@ -67,7 +68,7 @@ function Alarms() {
             <button className="btn-ghost" disabled={busy === a.id} onClick={() => run(a.id, async () => { const r = await api<any>(`/alarms/${a.id}/diagnose`, { method: 'POST', body: {} }); setDiag((d) => ({ ...d, [a.id]: r.answer })); })}>{busy === a.id ? 'Memproses…' : 'Diagnosis AI'}</button>
             {a.status === 'open' && <button className="btn-ghost" disabled={busy === a.id} onClick={() => run(a.id, () => api(`/alarms/${a.id}/ack`, { method: 'POST', body: {} }))}>Tangani</button>}
             {mgr() && !a.woId && a.assetId && <button className="btn" disabled={busy === a.id} onClick={() => run(a.id, () => api(`/alarms/${a.id}/create-wo`, { method: 'POST', body: {} }))}>Buat WO</button>}
-            {mgr() && <button className="btn-ghost" disabled={busy === a.id} onClick={() => confirm('Tutup alarm ini?') && run(a.id, () => api(`/alarms/${a.id}/close`, { method: 'POST', body: {} }))}>Tutup</button>}
+            {mgr() && <button className="btn-ghost" disabled={busy === a.id} onClick={async () => (await askConfirm('Tutup alarm ini?', { ok: 'Ya, tutup' })) && run(a.id, () => api(`/alarms/${a.id}/close`, { method: 'POST', body: {} }))}>Tutup</button>}
             {a.woCode && <Link className="text-blue-700 underline" href={`/work-orders/${a.woId}`}>{a.woCode}</Link>}</div>}
         </li>))}
         {list.data?.length === 0 && <li className="card text-sm text-slate-500">Tidak ada alarm.</li>}</ul>
@@ -100,7 +101,7 @@ function Kb() {
       <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs text-slate-500"><tr><th className="p-2">Judul</th><th>Potongan</th><th>Ditambahkan</th><th>Status</th><th></th></tr></thead>
         <tbody>{list.data?.map((d) => (<tr key={d.id} className="border-t"><td className="p-2">{d.title}</td><td>{d.chunks}</td><td>{new Date(d.createdAt).toLocaleDateString('id-ID')}{d.createdByName ? ` · ${d.createdByName}` : ''}</td><td>{d.active ? 'Aktif' : 'Nonaktif'}</td>
           <td className="space-x-3 text-xs">{mgr() && <button className="underline" onClick={() => api(`/ai/kb/${d.id}`, { method: 'PATCH', body: { active: !d.active } }).then(list.reload)}>{d.active ? 'nonaktifkan' : 'aktifkan'}</button>}
-            {['admin', 'supervisor'].includes(getUser()?.role ?? '') && <button className="text-red-600 underline" onClick={() => confirm(`Hapus "${d.title}"?`) && api(`/ai/kb/${d.id}`, { method: 'DELETE' }).then(list.reload)}>hapus</button>}</td></tr>))}
+            {['admin', 'supervisor'].includes(getUser()?.role ?? '') && <button className="text-red-600 underline" onClick={async () => (await askConfirm(`Hapus "${d.title}"?`, { danger: true })) && api(`/ai/kb/${d.id}`, { method: 'DELETE' }).then(list.reload)}>hapus</button>}</td></tr>))}
           {list.data?.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500">Belum ada dokumen.</td></tr>}</tbody></table></div>
     </div>
   );

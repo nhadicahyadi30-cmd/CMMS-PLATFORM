@@ -1,10 +1,11 @@
 'use client';
 import { useState } from 'react';
+import Loading from '@/components/Loading';
 import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 
 export default function Pm() {
-  const { data, error, reload } = useApi<any[]>('/pm/plans');
+  const { data, error, reload, loading } = useApi<any[]>('/pm/plans');
   const [msg, setMsg] = useState('');
   const canManage = ['admin', 'supervisor', 'planner'].includes(getUser()?.role ?? '');
   async function generate() {
@@ -21,6 +22,7 @@ export default function Pm() {
           <th className="p-2">Rencana</th><th>Aset</th><th>Pemicu</th><th>Skill</th><th>Jatuh tempo</th><th>Terakhir</th></tr></thead>
           <tbody>{data?.map((p) => (<tr key={p.id} className="border-t"><td className="p-2">{p.name}</td><td>{p.assetName}</td>
             <td>{p.triggerType === 'calendar' ? `${p.intervalDays} hari` : `${p.intervalMeter} jam`}</td><td className="text-xs text-slate-500">{p.skillId ? `${p.skillCode} ≥ ${p.skillMinLevel}` : '—'}</td><td>{p.nextDue ?? '—'}</td><td>{p.lastDone ?? '—'}</td></tr>))}</tbody></table>
+      {loading && <Loading />}
       </div>
     </div>
   );

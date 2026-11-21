@@ -1,5 +1,6 @@
 'use client';
 import { FormEvent, useEffect, useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import { api, ApiError, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 
@@ -33,11 +34,11 @@ export default function DevicesPage() {
   }
   async function rotate(d: Dev) {
     if (transport === 'http' ? !server : !mq.host) { setErr(transport === 'http' ? 'Isi "Alamat server" di formulir dulu, karena dipakai untuk kode konfigurasi baru.' : 'Isi alamat broker MQTT di formulir dulu, karena dipakai untuk kode konfigurasi baru.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    if (!confirm(`Buat kunci baru untuk ${d.name}? Kunci lama langsung dicabut dan perangkat harus di-flash ulang.`)) return;
+    if (!(await askConfirm(`Buat kunci baru untuk ${d.name}? Kunci lama langsung dicabut dan perangkat harus di-flash ulang.`, { danger: true, ok: 'Ya, buat kunci baru' }))) return;
     setErr(''); try { setRes(await api<Created>(`/telemetry/devices/${d.id}/rotate-key`, { method: 'POST', body: { demo, ...tp() } })); devs.reload(); window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (x) { setErr(msg(x)); }
   }
   async function remove(d: Dev) {
-    if (!confirm(`Nonaktifkan ${d.name}? Kunci dicabut dan data dari perangkat ini ditolak.`)) return;
+    if (!(await askConfirm(`Nonaktifkan ${d.name}? Kunci dicabut dan data dari perangkat ini ditolak.`, { danger: true, ok: 'Ya, nonaktifkan' }))) return;
     try { await api(`/telemetry/devices/${d.id}`, { method: 'DELETE' }); devs.reload(); } catch (x) { setErr(msg(x)); }
   }
   function download() { if (!res) return; const u = URL.createObjectURL(new Blob([res.config], { type: 'text/plain' })); const a = document.createElement('a'); a.href = u; a.download = 'config.h'; a.click(); URL.revokeObjectURL(u); }

@@ -1,7 +1,7 @@
 'use client';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api';
+import { getUser, login } from '@/lib/api';
 import Link from 'next/link';
 import Logo, { TAGLINE_WORDS } from '@/components/Logo';
 
@@ -13,7 +13,7 @@ export default function Login() {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true); setErr('');
     const f = new FormData(e.currentTarget);
-    try { await login(String(f.get('org')), String(f.get('username')), String(f.get('password'))); { const nx = new URLSearchParams(window.location.search).get('next'); r.replace(nx && /^\/(?!\/)/.test(nx) && !nx.startsWith('/login') ? nx : '/work-orders'); } }
+    try { await login(String(f.get('org')), String(f.get('username')), String(f.get('password'))); { const nx = new URLSearchParams(window.location.search).get('next'); r.replace(nx && /^\/(?!\/)/.test(nx) && !nx.startsWith('/login') ? nx : (['technician', 'production'].includes(getUser()?.role ?? '') ? '/home' : '/work-orders')); } }
     catch (x: any) { setErr(x.message); } finally { setBusy(false); }
   }
   return (

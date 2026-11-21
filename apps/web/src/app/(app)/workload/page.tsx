@@ -1,5 +1,6 @@
 'use client';
 import { FormEvent, useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import Link from 'next/link';
 import { api, ApiError, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
@@ -107,7 +108,7 @@ export default function WorkloadPage() {
                 <td>{w.skill ? <span className="font-mono text-xs">{w.skill.code} ≥ {w.skill.minLevel}</span> : <span className="text-xs text-slate-400">tidak diisi</span>}</td>
                 <td><div className="space-y-1">{w.suggestions.map((s) => (
                   <div key={s.id} className="flex flex-wrap items-center gap-2"><span className={`rounded px-1.5 py-0.5 text-xs ${s.qualified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{s.qualified ? 'sesuai' : 'skill kurang'}</span><span className="font-medium">{s.name}</span><span className="text-xs text-slate-500" title={s.reasons.join(' · ')}>beban jadi {pct(s.utilizationAfter)}</span>
-                    {canEdit && <button className="text-xs text-blue-700 hover:underline" onClick={() => { if (!s.qualified && !confirm(`${s.name} belum memenuhi level skill minimum. Tetap tugaskan?`)) return; assign(w.id, s.id); }}>Tugaskan</button>}</div>))}
+                    {canEdit && <button className="text-xs text-blue-700 hover:underline" onClick={async () => { if (!s.qualified && !(await askConfirm(`${s.name} belum memenuhi level skill minimum. Tetap tugaskan?`, { ok: 'Ya, tugaskan' }))) return; assign(w.id, s.id); }}>Tugaskan</button>}</div>))}
                   {!w.suggestions.length && <span className="text-xs text-slate-400">tidak ada kandidat</span>}</div></td></tr>))}
               {!d.backlog.length && <tr><td colSpan={5} className="p-4 text-center text-slate-500">Semua WO aktif sudah punya teknisi.</td></tr>}</tbody></table>
           <p className="p-3 text-xs text-slate-500">WO berstatus &quot;Menunggu approval&quot; perlu disetujui dulu sebelum dapat ditugaskan.</p>

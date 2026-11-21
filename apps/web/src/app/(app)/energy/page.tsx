@@ -1,5 +1,6 @@
 'use client';
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { askConfirm } from '@/components/Confirm';
 import { api, getUser } from '@/lib/api';
 import { csvToEntries, parseCsv } from '@/lib/csv';
 import { useApi } from '@/lib/hooks';
@@ -131,7 +132,7 @@ function Input({ plant, from, to }: { plant: string; from: string; to: string })
 
       <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs text-slate-500"><tr><th className="p-2">Tanggal</th><th>Unit</th><th>Cara</th><th>kWh</th><th>Ton</th><th>Keterangan</th><th></th></tr></thead>
         <tbody>{list.data?.map((e) => (<tr key={e.id} className="border-t"><td className="p-2">{new Date(e.dateFrom).toLocaleDateString('id-ID')}{e.dateTo !== e.dateFrom && ` – ${new Date(e.dateTo).toLocaleDateString('id-ID')}`}</td><td>{e.unitCode}</td><td>{KIND[e.periodKind]}</td><td>{fmt(e.kwh, 1)}</td><td>{e.ton == null ? '—' : fmt(e.ton, 1)}</td><td>{[e.shift, e.poCode, e.sku].filter(Boolean).join(' · ')}</td>
-          <td><button className="text-xs text-red-600 underline" onClick={() => confirm('Hapus entri ini?') && api(`/energy/entries/${e.id}`, { method: 'DELETE' }).then(list.reload)}>hapus</button></td></tr>))}
+          <td><button className="text-xs text-red-600 underline" onClick={async () => (await askConfirm('Hapus entri ini?', { danger: true })) && api(`/energy/entries/${e.id}`, { method: 'DELETE' }).then(list.reload)}>hapus</button></td></tr>))}
           {list.data?.length === 0 && <tr><td colSpan={7} className="p-4 text-center text-slate-500">Belum ada entri pada periode ini.</td></tr>}</tbody></table></div>
     </div>
   );

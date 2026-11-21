@@ -1,5 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
+import { askReason } from '@/components/Confirm';
 import { useState } from 'react';
 import { api, getUser } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
@@ -34,7 +35,7 @@ export default function WoDetail() {
       <div className="card flex flex-wrap items-center gap-2">
         {w.status === 'waiting' && sup && <>
           <button className="btn" disabled={busy} onClick={() => act('approve')}>Setujui</button>
-          <button className="btn-ghost" disabled={busy} onClick={() => { const r = prompt('Alasan penolakan?'); if (r) act('reject', { reason: r }); }}>Tolak</button></>}
+          <button className="btn-ghost" disabled={busy} onClick={async () => { const r = await askReason('WO ini akan ditolak. Tulis alasannya agar pelapor mengerti.', { ok: 'Tolak WO', danger: true }); if (r) act('reject', { reason: r }); }}>Tolak</button></>}
         {w.status === 'waiting' && !sup && <span className="text-sm text-slate-600">Menunggu approval Supervisor.</span>}
         {w.status === 'approved' && role !== 'technician' && (
           <select className="input max-w-xs" defaultValue="" onChange={(e) => e.target.value && act('assign', { technicianId: e.target.value })}>

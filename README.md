@@ -49,6 +49,10 @@ Setelah `docker compose up -d`, jalankan sekali (password acak dicetak satu kali
 docker compose run --rm -e OWNER_DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB" \
   api node dist/cli/bootstrap.js --org nama-perusahaan --name "Nama Perusahaan" --plant P1 --plant-name "Plant 1" --admin admin
 ```
+Lupa password / login ditolak? Atur ulang (PowerShell; ganti `PasswordBaru123` dan daftar pengguna):
+```powershell
+docker compose run --rm -e OWNER_DATABASE_URL="postgres://maintainhub_owner:PASSWORD_DB@db:5432/maintainhub" -e RESET_PASSWORD="PasswordBaru123" api node dist/cli/reset-password.js --org demo --users admin,spv.pa,plan.pa,tek.pa1,spv.pb,plan.pb,tek.pb1
+```
 Login di web dengan organisasi `nama-perusahaan` dan username tersebut, lalu kelola pengguna, teknisi, dan plant di menu Administrasi.
 
 ## Menguji skema database

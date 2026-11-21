@@ -9,6 +9,7 @@ import Attachments from '@/components/Attachments';
 import WoParts from '@/components/WoParts';
 import Field from '@/components/Field';
 import AskAi from '@/components/AskAi';
+import WoStepper from '@/components/WoStepper';
 
 export default function WoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ export default function WoDetail() {
     <div className="max-w-3xl space-y-4">
       <div><div className="font-mono text-sm text-slate-500">{w.code}</div><h1 className="text-xl font-semibold">{w.title}</h1>
         <div className="mt-1 flex gap-2"><Badge v={w.status} /><Badge v={w.priority} /><span className="text-sm text-slate-600">{w.assetName}</span></div></div>
+      <div className="card py-3"><WoStepper status={w.status} /></div>
       {w.description && <p className="card whitespace-pre-wrap text-sm">{w.description}</p>}
       <div className="card flex flex-wrap items-center gap-2">
         {w.status === 'waiting' && sup && <>

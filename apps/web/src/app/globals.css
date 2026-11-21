@@ -74,3 +74,29 @@ html.snap-site { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 .app-main table tbody tr:hover { background: #fff4cc; }
 .app-main .card.overflow-x-auto { box-shadow: 0 3px 0 rgba(16,27,51,.12); }
 .stripe-bar { height: 8px; background: repeating-linear-gradient(-45deg, #101b33 0 8px, #ffc93c 8px 16px); }
+
+/* Angka besar kartu KPI/energi: tipografi pabrik, penanda atas tebal */
+.app-main .card .tabular-nums.text-2xl { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 800; font-size: 2.7rem; line-height: 1; letter-spacing: -.01em; color: #101b33; }
+.app-main .card:has(.tabular-nums.text-2xl) { border-top: 5px solid #101b33; }
+.app-main .card:has(.tabular-nums.text-2xl) > div:first-child { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+/* Judul kartu: huruf kapital kondensed dengan penanda kuning */
+.app-main .card h2, .app-main .card h3 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .05em; color: #101b33; }
+.app-main .card h2 { font-size: 1.1rem; font-weight: 800; }
+.app-main .card h2::before { content: ''; display: inline-block; width: .55rem; height: .55rem; margin-right: .5rem; background: #ffc93c; border: 1.5px solid #101b33; transform: translateY(-1px); }
+.app-main .card h3 { font-size: 1rem; font-weight: 700; }
+/* Kotak peringatan/info bergaris tegas */
+.app-main p[role='alert'] { border-width: 1.5px; font-weight: 500; }
+/* Kontrol bawaan memakai warna merek */
+.app-root input[type='checkbox'], .app-root input[type='radio'], .app-root input[type='range'] { accent-color: #1a54b0; }
+.app-root ::selection { background: #ffc93c; color: #101b33; }
+/* Halaman muncul bertahap, singkat dan halus */
+@keyframes mh-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.app-main > div > * { animation: mh-rise .38s cubic-bezier(.2,.7,.2,1) both; }
+.app-main > div > *:nth-child(2) { animation-delay: .05s; }
+.app-main > div > *:nth-child(3) { animation-delay: .1s; }
+.app-main > div > *:nth-child(4) { animation-delay: .15s; }
+.app-main > div > *:nth-child(n+5) { animation-delay: .2s; }
+/* Scrollbar halaman */
+.app-root * { scrollbar-width: thin; scrollbar-color: #b9b2a0 transparent; }
+/* Tab/filter berbentuk tombol: jarak rapat */
+.app-main .btn-ghost[aria-pressed='true'] { background: #101b33; color: #fff; border-color: #101b33; }

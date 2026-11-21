@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 import { bootstrap, getUser, logout, User } from '@/lib/api';
 import Logo from './Logo';
+import NotificationBell from './NotificationBell';
 
 type Icon = string; // path data, gaya garis 24x24
 const I: Record<string, Icon> = {
@@ -22,6 +23,7 @@ const I: Record<string, Icon> = {
   dev: 'M7 7h10v10H7zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4',
   pred: 'M3 17l5-5 4 3 8-9M15 6h5v5',
   wf: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 19v-1.5C3 15 5.5 13 9 13s6 2 6 4.5V19H3Zm13-13a2.5 2.5 0 0 1 0 5m1 2c2.5.4 4 2 4 4v2h-3',
+  qr: 'M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h2v2h-2v-2Zm4 0h2v2h-2v-2Zm-4 4h2v2h-2v-2Zm4 0h2v2h-2v-2ZM7 7h0m10 0h0M7 17h0',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
 const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group: string }[] = [
@@ -30,6 +32,7 @@ const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group
   { m: 3, href: '/workload', label: 'Beban Teknisi', icon: 'wf', group: 'Operasi' },
   { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'wf', group: 'Operasi' },
   { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
+  { m: 1, href: '/scan', label: 'Pindai QR Aset', icon: 'qr', group: 'Operasi' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory', icon: 'inv', group: 'Operasi' },
   { m: 9, href: '/kpi', label: 'Dashboard KPI', icon: 'kpi', group: 'Analitik' },
   { m: 9, href: '/reports', label: 'Reports', icon: 'rep', group: 'Analitik' },
@@ -56,8 +59,8 @@ export default function Shell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (user) return;
-    bootstrap().then((u) => { if (!u) router.replace('/login'); else { setUser(u); setReady(true); } });
-  }, [user, router]);
+    bootstrap().then((u) => { if (!u) router.replace(`/login?next=${encodeURIComponent(path)}`); else { setUser(u); setReady(true); } });
+  }, [user, router, path]);
   useEffect(() => setOpen(false), [path]);
   if (!ready || !user) return <div className="flex min-h-screen items-center justify-center bg-ink-950"><div className="animate-pulse"><Logo size={56} dark /></div></div>;
 
@@ -92,6 +95,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-teal-400 text-xs font-semibold text-ink-950" aria-hidden="true">{initials}</div>
           <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-white">{user.name}</div><div className="text-xs text-slate-500">{ROLE[user.role] ?? user.role}</div></div>
+          <NotificationBell place="above" />
           <button className="rounded-md p-1.5 text-slate-500 transition hover:bg-white/10 hover:text-white" title="Keluar" aria-label="Keluar" onClick={async () => { await logout(); router.replace('/login'); }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
           </button>
@@ -102,12 +106,13 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen lg:flex">
-      <div className="hidden shrink-0 lg:block"><div className="sticky top-0 h-screen">{side}</div></div>
-      <div className="sticky top-0 z-30 flex items-center justify-between bg-ink-900 px-4 py-3 lg:hidden">
+      <div className="hidden shrink-0 lg:block print:hidden"><div className="sticky top-0 h-screen">{side}</div></div>
+      <div className="sticky top-0 z-30 flex items-center justify-between bg-ink-900 px-4 py-3 lg:hidden print:hidden">
         <Logo size={30} />
+        <div className="flex items-center gap-1 text-slate-300"><NotificationBell />
         <button className="rounded-md p-2 text-slate-300 hover:bg-white/10" aria-label="Buka menu" aria-expanded={open} onClick={() => setOpen(true)}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-        </button>
+        </button></div>
       </div>
       {open && <div className="fixed inset-0 z-40 lg:hidden"><div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} /><div className="absolute inset-y-0 left-0 shadow-2xl">{side}</div></div>}
       <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8"><div className="mx-auto max-w-7xl">{children}</div></main>

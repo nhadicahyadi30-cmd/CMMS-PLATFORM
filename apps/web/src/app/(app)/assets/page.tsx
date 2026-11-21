@@ -11,7 +11,8 @@ export default function Assets() {
     <div className="space-y-3">
       <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Aset & Equipment</h1>
         <div className="flex gap-2"><input className="input max-w-xs" placeholder="Cari kode / nama…" value={q} onChange={(e) => setQ(e.target.value)} />
-          {["admin", "supervisor", "planner"].includes(getUser()?.role ?? "") && <Link href="/assets/new" className="btn whitespace-nowrap">+ Tambah aset</Link>}</div></div>
+          {["admin", "supervisor", "planner"].includes(getUser()?.role ?? "") && <Link href="/assets/new" className="btn whitespace-nowrap">+ Tambah aset</Link>}
+          <Link href="/assets/labels" className="btn-ghost whitespace-nowrap">Label QR</Link></div></div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr>

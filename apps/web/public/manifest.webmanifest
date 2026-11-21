@@ -1,0 +1,22 @@
+{
+  "name": "MaintHub CMMS",
+  "short_name": "MaintHub",
+  "description": "Work order, preventive maintenance, monitoring mesin, dan pindai QR aset.",
+  "id": "/",
+  "start_url": "/work-orders",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "id",
+  "background_color": "#070d1a",
+  "theme_color": "#070d1a",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Pindai QR aset", "short_name": "Pindai", "url": "/scan" },
+    { "name": "Work Order", "short_name": "WO", "url": "/work-orders" }
+  ]
+}

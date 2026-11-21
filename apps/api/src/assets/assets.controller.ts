@@ -46,15 +46,28 @@ export class AssetsController {
     });
   }
 
+  /** Dipakai halaman hasil pindai QR (/a/<token>): token pada label menggantikan id aset. */
+  @Get('by-qr/:token')
+  async byQr(@Param('token') token: string, @Req() req: any) {
+    if (!/^[a-f0-9]{32}$/.test(token)) throw new HttpException('Kode QR tidak dikenali', HttpStatus.NOT_FOUND);
+    return this.db.tx(dbCtx(req.user), async (c) => {
+      const r = await c.query(`select id from assets where qr_token = $1`, [token]);
+      if (!r.rows[0]) throw new HttpException('Aset tidak ditemukan (atau bukan milik organisasi/plant Anda)', HttpStatus.NOT_FOUND);
+      return this.detail(c, r.rows[0].id);
+    });
+  }
+
+  private async detail(c: any, id: string) {
+    const r = await c.query(`select ${COLS} from assets where id = $1`, [id]);
+    if (!r.rows[0]) throw new HttpException('Aset tidak ditemukan', HttpStatus.NOT_FOUND);
+    const wo = await c.query(
+      `select id, code, title, wo_type as "woType", priority, status, created_at as "createdAt" from work_orders where asset_id = $1 order by created_at desc limit 20`, [id]);
+    return { ...r.rows[0], workOrders: wo.rows };
+  }
+
   @Get(':id')
   async one(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
-    return this.db.tx(dbCtx(req.user), async (c) => {
-      const r = await c.query(`select ${COLS} from assets where id = $1`, [id]);
-      if (!r.rows[0]) throw new HttpException('Aset tidak ditemukan', HttpStatus.NOT_FOUND);
-      const wo = await c.query(
-        `select id, code, title, wo_type as "woType", priority, status, created_at as "createdAt" from work_orders where asset_id = $1 order by created_at desc limit 20`, [id]);
-      return { ...r.rows[0], workOrders: wo.rows };
-    });
+    return this.db.tx(dbCtx(req.user), (c) => this.detail(c, id));
   }
 
   @Post() @Roles('admin', 'supervisor', 'planner')

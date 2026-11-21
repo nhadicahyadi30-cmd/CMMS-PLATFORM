@@ -17,6 +17,7 @@ Platform CMMS berbasis web: 10 modul, multi-plant, multi-user dengan RBAC. Pilot
 | Monitoring Mesin (kartu langsung per mesin: nilai, tren, jalan/berhenti, koneksi; auto-refresh 15 dtk) | ✅ aturan diuji (unit) dan query dijalankan di Postgres; belum dilihat dengan data perangkat nyata |
 | Uji alur utama otomatis (`node tools/smoke-test.mjs`: login → WO sampai ditutup → PDF → telemetri) | ✅ skrip diuji dengan server tiruan; **belum dijalankan ke sistem sungguhan** |
 | Perangkat ESP32: pendaftaran dari web (buat sensor + API key per perangkat + config.h otomatis), heartbeat status (Wi-Fi, uptime, antrean, firmware) | ✅ aturan dan SQL diuji; firmware dikompilasi + dijalankan dengan perangkat tiruan; **belum diuji dengan ESP32 asli** |
+| Beban & kebutuhan teknisi (kapasitas vs beban, lembur, jumlah teknisi, cuti) dan Matriks Skill (level 0–4, cakupan per shift, sertifikat, rekomendasi penugasan) | ✅ aturan hitung diuji unit (9 tes) dan SQL diuji; **asumsi (faktor produktif, batas lembur) perlu disesuaikan dengan kondisi perusahaan; halaman web belum dijalankan di browser** |
 | API NestJS dan Web Next.js (semua modul) | 🟡 lolos kompilasi + build di CI; **belum pernah dijalankan end-to-end** dan belum dilihat di browser sungguhan |
 | WhatsApp masuk: MULAI/SELESAI/STATUS dan foto → lampiran WO | 🟡 kode ada, belum diuji dengan WhatsApp sungguhan |
 | Modul 6 Sparepart & Inventory: stok (mutasi append-only, tak bisa minus), WO↔suku cadang, saran reorder, PR + approval, BOM PM | 🟡 DB teruji, API/UI baru dikompilasi CI |

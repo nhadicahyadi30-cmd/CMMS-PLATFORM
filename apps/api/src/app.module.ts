@@ -29,11 +29,12 @@ import { ReportsService } from './reports/reports.service';
 import { StorageService } from './storage/storage.service';
 import { AttachmentsService } from './storage/attachments.service';
 import { AttachmentsController } from './storage/attachments.controller';
+import { WorkforceController } from './workforce/workforce.controller';
 import { WhatsappProcessor } from './whatsapp/whatsapp.processor';
 import { WhatsappService } from './whatsapp/whatsapp.service';
 
 @Module({
-  controllers: [AuthController, LeadsController, IngestController, TelemetryController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, ImportController, ReportsController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WhatsappController],
+  controllers: [AuthController, LeadsController, IngestController, TelemetryController, KpiController, RcaController, FailureModesController, EnergyController, AiController, AlarmsController, ImportController, ReportsController, InventoryController, WoPartsController, AdminController, AttachmentsController, PlantsController, TechniciansController, AssetsController, WorkOrdersController, PmController, WorkforceController, WhatsappController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }, DbService, AiService, AuthService, WhatsappService, WhatsappProcessor, StorageService, AttachmentsService, MailerService, ReportsService, ReportsScheduler],
 })
 export class AppModule {}

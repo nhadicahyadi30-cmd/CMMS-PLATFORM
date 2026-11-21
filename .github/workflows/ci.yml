@@ -25,6 +25,7 @@ jobs:
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/leads.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/telemetry.sql
       - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/devices.sql
+      - run: psql -d mh_test -v ON_ERROR_STOP=1 -q -f db/tests/workforce.sql
   api:
     runs-on: ubuntu-latest
     steps:

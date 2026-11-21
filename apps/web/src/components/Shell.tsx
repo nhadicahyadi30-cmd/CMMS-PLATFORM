@@ -21,11 +21,14 @@ const I: Record<string, Icon> = {
   mon: 'M3 4h18v12H3zM8 20h8M12 16v4M7 11l3-3 3 3 4-4',
   dev: 'M7 7h10v10H7zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4',
   pred: 'M3 17l5-5 4 3 8-9M15 6h5v5',
+  wf: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 19v-1.5C3 15 5.5 13 9 13s6 2 6 4.5V19H3Zm13-13a2.5 2.5 0 0 1 0 5m1 2c2.5.4 4 2 4 4v2h-3',
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
 const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group: string }[] = [
   { m: 3, href: '/work-orders', label: 'Work Order', icon: 'wo', group: 'Operasi' },
   { m: 2, href: '/pm', label: 'Preventive', icon: 'pm', group: 'Operasi' },
+  { m: 3, href: '/workload', label: 'Beban Teknisi', icon: 'wf', group: 'Operasi' },
+  { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'wf', group: 'Operasi' },
   { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
   { m: 6, href: '/inventory', label: 'Sparepart & Inventory', icon: 'inv', group: 'Operasi' },
   { m: 9, href: '/kpi', label: 'Dashboard KPI', icon: 'kpi', group: 'Analitik' },

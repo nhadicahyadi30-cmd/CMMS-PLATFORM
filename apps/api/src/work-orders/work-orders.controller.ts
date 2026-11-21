@@ -12,6 +12,7 @@ const CreateDto = z.object({
   woType: z.enum(['breakdown', 'corrective', 'preventive', 'emergency']),
   title: z.string().trim().min(3).max(200), description: z.string().max(4000).default(''),
   priority: z.enum(['P1', 'P2', 'P3', 'P4']), estHours: z.number().min(0).max(999).default(2),
+  skillId: z.string().uuid().nullable().optional(), skillMinLevel: z.number().int().min(1).max(4).default(2),
 });
 const ListQ = z.object({
   status: z.string().optional(), plantId: z.string().uuid().optional(), assetId: z.string().uuid().optional(),
@@ -22,7 +23,7 @@ const ListQ = z.object({
 const COLS = `w.id, w.code, w.plant_id as "plantId", w.asset_id as "assetId", a.name as "assetName", w.wo_type as "woType", w.title, w.description,
   w.priority, w.status, w.technician_id as "technicianId", t.full_name as "technicianName", w.est_hours as "estHours", w.actual_hours as "actualHours",
   w.downtime_hours as "downtimeHours", w.result_notes as "resultNotes", w.created_at as "createdAt", w.sla_respond_due as "slaRespondDue",
-  w.sla_resolve_due as "slaResolveDue", w.approved_at as "approvedAt", w.reject_reason as "rejectReason", w.done_at as "doneAt", w.closed_at as "closedAt", w.failure_mode_id as "failureModeId"`;
+  w.sla_resolve_due as "slaResolveDue", w.approved_at as "approvedAt", w.reject_reason as "rejectReason", w.done_at as "doneAt", w.closed_at as "closedAt", w.failure_mode_id as "failureModeId", w.skill_id as "skillId", w.skill_min_level as "skillMinLevel"`;
 const FROM = `from work_orders w join assets a on a.id = w.asset_id left join technicians t on t.id = w.technician_id`;
 
 @Controller('work-orders')
@@ -78,9 +79,9 @@ export class WorkOrdersController {
     try {
       return await this.db.tx(dbCtx(u), async (c) => {
         const r = await c.query(
-          `insert into work_orders (org_id, plant_id, wo_type, source, title, description, asset_id, priority, est_hours, requester_id)
-           values ($1,$2,$3,'manual',$4,$5,$6,$7,$8,$9) returning id, code, status`,
-          [u.org, d.plantId, d.woType, d.title, d.description, d.assetId, d.priority, d.estHours, u.sub]);
+          `insert into work_orders (org_id, plant_id, wo_type, source, title, description, asset_id, priority, est_hours, requester_id, skill_id, skill_min_level)
+           values ($1,$2,$3,'manual',$4,$5,$6,$7,$8,$9,$10,$11) returning id, code, status`,
+          [u.org, d.plantId, d.woType, d.title, d.description, d.assetId, d.priority, d.estHours, u.sub, d.skillId ?? null, d.skillMinLevel]);
         await this.log(c, u, r.rows[0].id, 'WO dibuat, menunggu approval Supervisor');
         return r.rows[0];
       });

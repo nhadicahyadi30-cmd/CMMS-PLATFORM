@@ -45,7 +45,7 @@ export default function ImportPage() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Impor Data Master</h1>
+      <div><h1 className="text-xl font-semibold">Master Data Import</h1>
         <p className="text-sm text-slate-600">Masukkan banyak data sekaligus dari Excel. Periksa dulu — tidak ada yang tersimpan sampai Anda menekan Impor.</p></div>
 
       <div className="flex gap-2" role="tablist">

@@ -36,7 +36,7 @@ export default function LabelsPage() {
     <div className="space-y-4">
       <div className="no-print print:hidden space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div><h1 className="text-xl font-semibold">Label QR Aset</h1><p className="text-sm text-slate-600">Pilih aset, lalu cetak. Tempel label di mesin; teknisi memindainya dari HP untuk melihat riwayat dan melapor kerusakan. <Link href="/assets" className="text-blue-700 hover:underline">Kembali ke daftar aset</Link></p></div>
+          <div><h1 className="text-xl font-semibold">Asset QR Labels</h1><p className="text-sm text-slate-600">Pilih aset, lalu cetak. Tempel label di mesin; teknisi memindainya dari HP untuk melihat riwayat dan melapor kerusakan. <Link href="/assets" className="text-blue-700 hover:underline">Kembali ke daftar aset</Link></p></div>
           <button className="btn" disabled={!chosen.length || !Object.keys(imgs).length} onClick={() => window.print()}>Cetak {chosen.length} label</button>
         </div>
         <div className="card space-y-2">

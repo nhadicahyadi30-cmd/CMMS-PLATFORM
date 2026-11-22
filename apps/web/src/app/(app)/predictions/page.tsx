@@ -88,7 +88,7 @@ export default function PredictionsPage() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Dashboard Prediksi</h1>
+      <div><h1 className="text-xl font-semibold">Predictions Dashboard</h1>
         <p className="text-sm text-slate-600">Perkiraan kapan sensor mencapai batas, penyimpangan dari pola normal, dan jadwal PM berbasis running hour. Memakai tren linear dan statistik sederhana yang bisa dijelaskan; bukan pengganti penilaian teknisi.</p></div>
       {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{String(error)}</p>}
       {note && <p className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{note}</p>}

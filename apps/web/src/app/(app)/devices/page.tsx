@@ -47,7 +47,7 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Perangkat RTU</h1><p className="text-sm text-slate-600">Daftarkan perangkat RTU ke mesin, dapatkan <b>kode konfigurasi</b> (tempel di portal perangkat, tanpa flash ulang), lalu pantau status koneksinya. Satu firmware yang sama untuk semua perangkat, jalur kirim HTTP atau MQTT. Setiap perangkat punya API key sendiri yang terbatas pada plant mesinnya. Panduan pemasangan: <code>docs/ESP32.md</code>.</p></div>
+      <div><h1 className="text-xl font-semibold">RTU Devices</h1><p className="text-sm text-slate-600">Daftarkan perangkat RTU ke mesin, dapatkan <b>kode konfigurasi</b> (tempel di portal perangkat, tanpa flash ulang), lalu pantau status koneksinya. Satu firmware yang sama untuk semua perangkat, jalur kirim HTTP atau MQTT. Setiap perangkat punya API key sendiri yang terbatas pada plant mesinnya. Panduan pemasangan: <code>docs/ESP32.md</code>.</p></div>
       {err && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{err}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Card l="Terdaftar" v={list.filter((d) => d.active).length} /><Card l="Online" v={count('online')} c="text-emerald-700" /><Card l="Menunggu data pertama" v={count('waiting')} c="text-blue-700" /><Card l="Offline / tertunda" v={count('offline') + count('delayed')} c="text-amber-700" /></div>
 

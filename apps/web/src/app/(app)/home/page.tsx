@@ -7,26 +7,26 @@ type Tile = { href: string; title: string; hint: string; m: number; main?: boole
 
 const TILES: Record<string, Tile[]> = {
   technician: [
-    { href: '/work-orders', title: 'Work Order saya', hint: 'Lihat dan kerjakan tugas yang ditugaskan', m: 3, main: true },
-    { href: '/inspections', title: 'Isi inspeksi', hint: 'Checklist harian atau mingguan mesin', m: 11 },
-    { href: '/permits', title: 'Izin kerja', hint: 'Ajukan izin, pasang gembok, mulai kerja', m: 12 },
-    { href: '/field', title: 'Mode Lapangan', hint: 'Tetap bisa bekerja tanpa sinyal', m: 11 },
-    { href: '/scan', title: 'Pindai QR aset', hint: 'Buka atau laporkan mesin dari kodenya', m: 1 },
-    { href: '/inventory', title: 'Sparepart', hint: 'Cek stok suku cadang', m: 6 },
+    { href: '/work-orders', title: 'My Work Orders', hint: 'Lihat dan kerjakan tugas yang ditugaskan', m: 3, main: true },
+    { href: '/inspections', title: 'Run an Inspection', hint: 'Checklist harian atau mingguan mesin', m: 11 },
+    { href: '/permits', title: 'Work Permits', hint: 'Ajukan izin, pasang gembok, mulai kerja', m: 12 },
+    { href: '/field', title: 'Field Mode', hint: 'Tetap bisa bekerja tanpa sinyal', m: 11 },
+    { href: '/scan', title: 'Scan Asset QR', hint: 'Buka atau laporkan mesin dari kodenya', m: 1 },
+    { href: '/inventory', title: 'Spare Parts', hint: 'Cek stok suku cadang', m: 6 },
   ],
   production: [
-    { href: '/work-orders/new', title: 'Lapor kerusakan', hint: 'Mesin bermasalah? Laporkan di sini', m: 3, main: true },
-    { href: '/work-orders', title: 'Laporan saya', hint: 'Pantau perkembangan perbaikan', m: 3 },
-    { href: '/permits', title: 'Izin kerja di area saya', hint: 'Serahkan area dan konfirmasi penutupan', m: 12 },
-    { href: '/inspections', title: 'Checklist operator', hint: 'Pemeriksaan harian mesin', m: 11 },
-    { href: '/scan', title: 'Pindai QR aset', hint: 'Laporkan mesin langsung dari kodenya', m: 1 },
+    { href: '/work-orders/new', title: 'Report a Breakdown', hint: 'Mesin bermasalah? Laporkan di sini', m: 3, main: true },
+    { href: '/work-orders', title: 'My Requests', hint: 'Pantau perkembangan perbaikan', m: 3 },
+    { href: '/permits', title: 'Permits in My Area', hint: 'Serahkan area dan konfirmasi penutupan', m: 12 },
+    { href: '/inspections', title: 'Operator Checklist', hint: 'Pemeriksaan harian mesin', m: 11 },
+    { href: '/scan', title: 'Scan Asset QR', hint: 'Laporkan mesin langsung dari kodenya', m: 1 },
   ],
 };
 
 export default function Home() {
   const u = getUser();
   if (!u) return null;
-  const tiles = (TILES[u.role] ?? [{ href: '/work-orders', title: 'Work Order', hint: 'Daftar semua pekerjaan', m: 3, main: true }]).filter((t) => u.modules.includes(t.m));
+  const tiles = (TILES[u.role] ?? [{ href: '/work-orders', title: 'Work Orders', hint: 'Daftar semua pekerjaan', m: 3, main: true }]).filter((t) => u.modules.includes(t.m));
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">

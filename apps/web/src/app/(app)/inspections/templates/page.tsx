@@ -33,7 +33,7 @@ export default function Templates() {
   const upd = (n: number, p: Partial<Item>) => setItems((a) => a.map((x, i) => (i === n ? { ...x, ...p } : x)));
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Template Checklist</h1>{!edit && <button className="btn" onClick={() => open('new')}>+ Template baru</button>}</div>
+      <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Checklist Templates</h1>{!edit && <button className="btn" onClick={() => open('new')}>+ Template baru</button>}</div>
       {msg && <p className="text-sm text-slate-700" role="status">{msg}</p>}
       {!edit && <div className="card overflow-x-auto p-0"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-2">Kode</th><th>Nama</th><th>Aset</th><th>Untuk</th><th>Frekuensi</th><th>Status</th><th /></tr></thead>
         <tbody>{list.data?.map((t) => (<tr key={t.id} className="border-t"><td className="p-2 font-mono">{t.code}</td><td>{t.name} <span className="text-xs text-slate-500">({t.itemCount} butir)</span></td><td>{t.assetName ?? 'Pilih saat mengisi'}</td><td>{AUDIENCE[t.audience]}</td><td>{t.frequencyDays ? `${t.frequencyDays} hari` : '—'}</td><td>{t.active ? 'Aktif' : 'Nonaktif'}</td><td className="pr-2 text-right"><button className="btn-ghost" onClick={() => open(t.id)}>Ubah</button></td></tr>))}</tbody></table></div>}

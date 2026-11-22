@@ -26,7 +26,7 @@ export default function NewAsset() {
   }
   return (
     <form onSubmit={submit} className="card max-w-2xl space-y-3">
-      <h1 className="text-xl font-semibold">Tambah Aset</h1>
+      <h1 className="text-xl font-semibold">Add Asset</h1>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Plant"><select className="input" required value={plantId} onChange={(e) => setPlantId(e.target.value)}>
           <option value="">Pilih plant…</option>{plants.data?.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}</select></Field>

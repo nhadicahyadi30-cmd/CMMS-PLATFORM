@@ -66,7 +66,7 @@ export default function Kpi() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3"><h1 className="text-xl font-semibold">Dashboard KPI</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3"><h1 className="text-xl font-semibold">KPI Dashboard</h1>
         <div className="flex flex-wrap items-center gap-2">
           <select className="input w-40" value={plant} onChange={(e) => setPlant(e.target.value)} aria-label="Plant"><option value="">Semua plant</option>{plants.data?.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}</select>
           {P.map((p) => <button key={p.k} className={preset === p.k ? 'btn' : 'btn-ghost'} onClick={() => { setPreset(p.k); setFrom(p.from); setTo(p.to); }}>{p.l}</button>)}

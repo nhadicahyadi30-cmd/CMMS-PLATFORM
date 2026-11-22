@@ -51,7 +51,7 @@ export default function WorkloadPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><h1 className="text-xl font-semibold">Beban & Kebutuhan Teknisi</h1><p className="text-sm text-slate-600">Menghitung beban kerja terhadap kapasitas teknisi, kebutuhan jumlah teknisi, dan perlu-tidaknya lembur. Skill tiap teknisi ada di <Link className="text-blue-700 hover:underline" href="/skills">Matriks Skill</Link>.</p></div>
+        <div><h1 className="text-xl font-semibold">Technician Workload & Capacity</h1><p className="text-sm text-slate-600">Menghitung beban kerja terhadap kapasitas teknisi, kebutuhan jumlah teknisi, dan perlu-tidaknya lembur. Skill tiap teknisi ada di <Link className="text-blue-700 hover:underline" href="/skills">Matriks Skill</Link>.</p></div>
         <div className="flex gap-2 text-sm">
           <select className="input" aria-label="Periode" value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={7}>7 hari ke depan</option><option value={14}>14 hari</option><option value={30}>30 hari</option></select>
           <select className="input" aria-label="Plant" value={plantId} onChange={(e) => setPlantId(e.target.value)}><option value="">Semua plant</option>{plants.data?.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}</select>

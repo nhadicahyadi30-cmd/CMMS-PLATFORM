@@ -15,8 +15,8 @@ export default function Inspections() {
   const dueIds = new Set(due.data?.filter((d) => d.overdueDays >= 0).map((d) => d.templateId));
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-xl font-semibold">Inspeksi & Checklist</h1>
-        <div className="flex gap-2"><Link href="/field" className="btn-ghost">Mode Lapangan (offline)</Link>{canManage && <Link href="/inspections/templates" className="btn-ghost">Kelola template</Link>}</div></div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-xl font-semibold">Inspections & Checklists</h1>
+        <div className="flex gap-2"><Link href="/field" className="btn-ghost">Field Mode (offline)</Link>{canManage && <Link href="/inspections/templates" className="btn-ghost">Kelola template</Link>}</div></div>
       <div className="flex gap-2"><button className={tab === 'do' ? 'btn' : 'btn-ghost'} onClick={() => setTab('do')}>Kerjakan</button><button className={tab === 'history' ? 'btn' : 'btn-ghost'} onClick={() => setTab('history')}>Riwayat</button></div>
       {tab === 'do' && (<>
         {!!dueIds.size && <p className="rounded bg-amber-50 px-3 py-2 text-sm text-amber-900">{dueIds.size} checklist sudah jatuh tempo.</p>}

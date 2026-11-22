@@ -159,7 +159,7 @@ export default function Admin() {
   const T: [Tab, string][] = [['users', 'Pengguna'], ['techs', 'Teknisi'], ['plants', 'Plant'], ['perms', 'Hak akses']];
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Administrasi</h1>
+      <h1 className="text-xl font-semibold">Administration</h1>
       <div className="flex gap-2">{T.map(([k, l]) => <button key={k} className={tab === k ? 'btn' : 'btn-ghost'} onClick={() => setTab(k)}>{l}</button>)}</div>
       {tab === 'users' ? <Users /> : tab === 'techs' ? <Techs /> : tab === 'perms' ? <Permissions /> : <Plants />}
     </div>

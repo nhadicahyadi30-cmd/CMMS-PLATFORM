@@ -12,7 +12,7 @@ export const metadata = {
 export const viewport: Viewport = { themeColor: '#070d1a', width: 'device-width', initialScale: 1 };
 export default function Root({ children }: { children: ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

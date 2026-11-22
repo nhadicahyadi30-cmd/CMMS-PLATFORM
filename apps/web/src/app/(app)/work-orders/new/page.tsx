@@ -27,7 +27,7 @@ export default function NewWo() {
   }
   return (
     <form onSubmit={submit} className="card max-w-2xl space-y-3">
-      <h1 className="text-xl font-semibold">Buat Work Order</h1>
+      <h1 className="text-xl font-semibold">Create Work Order</h1>
       <p className="text-sm text-slate-600">Setiap WO menunggu approval Supervisor sebelum bisa ditugaskan.</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Plant"><select className="input" required value={plantId} onChange={(e) => setPlantId(e.target.value)}>

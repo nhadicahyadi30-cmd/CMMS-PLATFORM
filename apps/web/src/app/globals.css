@@ -99,3 +99,37 @@ html.snap-site { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 .app-root * { scrollbar-width: thin; scrollbar-color: #b9b2a0 transparent; }
 /* Tab/filter berbentuk tombol: jarak rapat */
 .app-main .btn-ghost[aria-pressed='true'] { background: #101b33; color: #fff; border-color: #101b33; }
+
+/* ---------- Public website: light theme (dark is the base design) ---------- */
+html[data-site-theme='light'] .site-root { background: #f6f7f9; color: #0f172a; }
+html[data-site-theme='light'] .site-root .text-white,
+html[data-site-theme='light'] .site-root .text-stone-100,
+html[data-site-theme='light'] .site-root .text-slate-100,
+html[data-site-theme='light'] .site-root .text-slate-200 { color: #0f172a; }
+html[data-site-theme='light'] .site-root .text-slate-300 { color: #334155; }
+html[data-site-theme='light'] .site-root .text-slate-400 { color: #475569; }
+html[data-site-theme='light'] .site-root .text-slate-500,
+html[data-site-theme='light'] .site-root .text-slate-600 { color: #64748b; }
+html[data-site-theme='light'] .site-root .text-teal-300,
+html[data-site-theme='light'] .site-root .text-teal-400 { color: #0f766e; }
+html[data-site-theme='light'] .site-root .bg-\[\#07090d\],
+html[data-site-theme='light'] .site-root .bg-\[\#090c11\] { background-color: #f6f7f9; }
+html[data-site-theme='light'] .site-root .bg-\[\#05070a\] { background-color: #eceff3; }
+html[data-site-theme='light'] .site-root .bg-\[\#07090d\]\/80 { background-color: rgba(246,247,249,.85); }
+html[data-site-theme='light'] .site-root .border-white\/5,
+html[data-site-theme='light'] .site-root .border-white\/10,
+html[data-site-theme='light'] .site-root .border-white\/20,
+html[data-site-theme='light'] .site-root .border-white\/25 { border-color: rgba(15,23,42,.14); }
+html[data-site-theme='light'] .site-root .bg-white\/5,
+html[data-site-theme='light'] .site-root .bg-white\/10 { background-color: rgba(15,23,42,.06); }
+html[data-site-theme='light'] .site-root .hover\:bg-white\/5:hover,
+html[data-site-theme='light'] .site-root .hover\:bg-white\/10:hover { background-color: rgba(15,23,42,.08); }
+/* solid white buttons become dark buttons */
+html[data-site-theme='light'] .site-root a.bg-white,
+html[data-site-theme='light'] .site-root button.bg-white { background-color: #0f172a; color: #fff; }
+html[data-site-theme='light'] .site-root a.bg-white:hover { background-color: #0f766e; color: #fff; }
+html[data-site-theme='light'] .site-root .site-grid { opacity: .5; filter: invert(1); }
+html[data-site-theme='light'] .site-root .theme-toggle { color: #0f172a; }
+html[data-site-theme='light'] .site-root input,
+html[data-site-theme='light'] .site-root textarea,
+html[data-site-theme='light'] .site-root select { color: #0f172a; }

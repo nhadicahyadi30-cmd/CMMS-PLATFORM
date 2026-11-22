@@ -44,7 +44,7 @@ export default function FieldPage() {
   return (
     <div className="app-root app-main mx-auto min-h-screen max-w-2xl space-y-3 p-3 text-slate-800">
       <header className="flex items-center justify-between gap-2">
-        <div><h1 className="text-lg font-semibold">Mode Lapangan</h1><p className="text-xs text-slate-500">{pack ? `${pack.user.name} · data per ${fmt(pack.generatedAt)}` : 'Belum ada data di perangkat ini'}</p></div>
+        <div><h1 className="text-lg font-semibold">Field Mode</h1><p className="text-xs text-slate-500">{pack ? `${pack.user.name} · data per ${fmt(pack.generatedAt)}` : 'Belum ada data di perangkat ini'}</p></div>
         <div className="flex items-center gap-2"><span className={`rounded-full px-2 py-0.5 text-xs font-medium ${online ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{online ? 'Online' : 'Offline'}</span>
           <Link href="/work-orders" className="btn-ghost">Aplikasi</Link></div>
       </header>

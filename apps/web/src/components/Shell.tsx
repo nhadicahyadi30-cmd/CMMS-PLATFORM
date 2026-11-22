@@ -34,30 +34,30 @@ const I: Record<string, Icon> = {
   adm: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
 };
 const NAV: { m: number; href: string; label: string; icon: keyof typeof I; group: string }[] = [
-  { m: 3, href: '/home', label: 'Beranda', icon: 'home', group: 'Operasi' },
-  { m: 3, href: '/work-orders', label: 'Work Order', icon: 'wo', group: 'Operasi' },
-  { m: 2, href: '/pm', label: 'Preventive', icon: 'pm', group: 'Operasi' },
-  { m: 11, href: '/inspections', label: 'Inspeksi & Checklist', icon: 'insp', group: 'Operasi' },
-  { m: 12, href: '/permits', label: 'Izin Kerja (PTW)', icon: 'ptw', group: 'Operasi' },
-  { m: 11, href: '/field', label: 'Mode Lapangan', icon: 'fld', group: 'Operasi' },
-  { m: 3, href: '/workload', label: 'Beban Teknisi', icon: 'wf', group: 'Operasi' },
-  { m: 3, href: '/skills', label: 'Matriks Skill', icon: 'skill', group: 'Operasi' },
-  { m: 1, href: '/assets', label: 'Aset & Equipment', icon: 'asset', group: 'Operasi' },
-  { m: 1, href: '/scan', label: 'Pindai QR Aset', icon: 'qr', group: 'Operasi' },
-  { m: 6, href: '/inventory', label: 'Sparepart & Inventory', icon: 'inv', group: 'Operasi' },
-  { m: 9, href: '/kpi', label: 'Dashboard KPI', icon: 'kpi', group: 'Analitik' },
-  { m: 9, href: '/reports', label: 'Laporan', icon: 'rep', group: 'Analitik' },
-  { m: 8, href: '/rca', label: 'RCA & Failure', icon: 'rca', group: 'Analitik' },
-  { m: 1, href: '/monitoring', label: 'Monitoring Mesin', icon: 'mon', group: 'Analitik' },
-  { m: 1, href: '/predictions', label: 'Dashboard Prediksi', icon: 'pred', group: 'Analitik' },
-  { m: 1, href: '/devices', label: 'Perangkat RTU', icon: 'dev', group: 'Analitik' },
-  { m: 1, href: '/telemetry', label: 'Telemetri (Sensor & Kunci)', icon: 'tel', group: 'Analitik' },
-  { m: 7, href: '/energy', label: 'Electrical & Utility', icon: 'energy', group: 'Analitik' },
-  { m: 5, href: '/ai', label: 'AI Assistant', icon: 'ai', group: 'Analitik' },
-  { m: 1, href: '/import', label: 'Impor Data', icon: 'imp', group: 'Pengaturan' },
-  { m: 10, href: '/admin', label: 'Administrasi', icon: 'adm', group: 'Pengaturan' },
+  { m: 3, href: '/home', label: 'Home', icon: 'home', group: 'Operations' },
+  { m: 3, href: '/work-orders', label: 'Work Orders', icon: 'wo', group: 'Operations' },
+  { m: 2, href: '/pm', label: 'Preventive Maintenance', icon: 'pm', group: 'Operations' },
+  { m: 11, href: '/inspections', label: 'Inspections & Checklists', icon: 'insp', group: 'Operations' },
+  { m: 12, href: '/permits', label: 'Permit to Work (PTW)', icon: 'ptw', group: 'Operations' },
+  { m: 11, href: '/field', label: 'Field Mode', icon: 'fld', group: 'Operations' },
+  { m: 3, href: '/workload', label: 'Technician Workload', icon: 'wf', group: 'Operations' },
+  { m: 3, href: '/skills', label: 'Skill Matrix', icon: 'skill', group: 'Operations' },
+  { m: 1, href: '/assets', label: 'Assets & Equipment', icon: 'asset', group: 'Operations' },
+  { m: 1, href: '/scan', label: 'Scan Asset QR', icon: 'qr', group: 'Operations' },
+  { m: 6, href: '/inventory', label: 'Spare Parts & Inventory', icon: 'inv', group: 'Operations' },
+  { m: 9, href: '/kpi', label: 'KPI Dashboard', icon: 'kpi', group: 'Analytics' },
+  { m: 9, href: '/reports', label: 'Reports', icon: 'rep', group: 'Analytics' },
+  { m: 8, href: '/rca', label: 'RCA & Failures', icon: 'rca', group: 'Analytics' },
+  { m: 1, href: '/monitoring', label: 'Machine Monitoring', icon: 'mon', group: 'Analytics' },
+  { m: 1, href: '/predictions', label: 'Predictions Dashboard', icon: 'pred', group: 'Analytics' },
+  { m: 1, href: '/devices', label: 'RTU Devices', icon: 'dev', group: 'Analytics' },
+  { m: 1, href: '/telemetry', label: 'Telemetry (Sensors & Keys)', icon: 'tel', group: 'Analytics' },
+  { m: 7, href: '/energy', label: 'Electrical & Utility', icon: 'energy', group: 'Analytics' },
+  { m: 5, href: '/ai', label: 'AI Assistant', icon: 'ai', group: 'Analytics' },
+  { m: 1, href: '/import', label: 'Data Import', icon: 'imp', group: 'Settings' },
+  { m: 10, href: '/admin', label: 'Administration', icon: 'adm', group: 'Settings' },
 ];
-const ROLE: Record<string, string> = { admin: 'Administrator', supervisor: 'Supervisor', planner: 'Planner', technician: 'Teknisi', production: 'Produksi' };
+const ROLE: Record<string, string> = { admin: 'Administrator', supervisor: 'Supervisor', planner: 'Planner', technician: 'Technician', production: 'Production' };
 
 function NavIcon({ d }: { d: string }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0"><path d={d} /></svg>;
@@ -135,7 +135,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             const on = path.startsWith(n.href);
             return (
               <Link key={n.href} href={n.href} aria-current={on ? 'page' : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-medium ${on ? 'text-yellow-300' : 'text-slate-400'}`}>
-                <NavIcon d={I[n.icon]} /><span className="max-w-full truncate">{n.label.replace('Inspeksi & Checklist', 'Inspeksi').replace('Izin Kerja (PTW)', 'Izin Kerja')}</span>
+                <NavIcon d={I[n.icon]} /><span className="max-w-full truncate">{n.label.replace('Inspections & Checklists', 'Inspections').replace('Permit to Work (PTW)', 'Permits').replace('Preventive Maintenance', 'Preventive').replace('Spare Parts & Inventory', 'Inventory')}</span>
               </Link>
             );
           })}

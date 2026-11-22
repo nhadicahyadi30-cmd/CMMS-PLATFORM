@@ -38,7 +38,7 @@ export default function ScanPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-3">
-      <h1 className="text-xl font-semibold">Pindai QR Aset</h1>
+      <h1 className="text-xl font-semibold">Scan Asset QR</h1>
       <p className="text-sm text-slate-600">Pindai label di mesin untuk melihat riwayat, WO yang berjalan, dan melapor kerusakan.</p>
       {err && <p className="rounded bg-amber-50 px-3 py-2 text-sm text-amber-800" role="alert">{err}</p>}
       {on ? (<><div className="overflow-hidden rounded-xl bg-black"><video ref={video} className="aspect-square w-full object-cover" playsInline muted /></div><p className="text-center text-sm text-slate-600" aria-live="polite">{msg}</p><button className="btn-ghost w-full" onClick={() => setOn(false)}>Matikan kamera</button></>)

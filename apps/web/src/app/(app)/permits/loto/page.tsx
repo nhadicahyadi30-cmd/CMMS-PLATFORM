@@ -20,7 +20,7 @@ export default function LotoMaster() {
   async function del(x: any) { if (!(await askConfirm(`Hapus titik "${x.description}"?`, { danger: true }))) return; try { await api(`/loto-points/${x.id}`, { method: 'DELETE' }); list.reload(); } catch (e: any) { setMsg(e.message); } }
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold">Titik Isolasi (LOTO) per Aset</h1>
+      <h1 className="text-xl font-semibold">Isolation Points (LOTO) per Asset</h1>
       <p className="text-sm text-slate-600">Daftar titik isolasi energi (breaker, valve, dll.) yang dipakai ulang saat mengajukan izin kerja. Isi berdasarkan prosedur LOTO resmi perusahaan dan diverifikasi oleh orang yang berwenang.</p>
       <div className="grid max-w-xl gap-3 sm:grid-cols-2">
         <Field label="Plant"><select className="input" value={plantId} onChange={(e) => { setPlantId(e.target.value); setAssetId(''); }}><option value="">Pilih plant…</option>{plants.data?.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}</select></Field>

@@ -140,7 +140,7 @@ export default function Inventory() {
   const [tab, setTab] = useState<Tab>('stock');
   const T: [Tab, string][] = [['stock', 'Stok'], ['reorder', 'Saran pesan ulang'], ['pr', 'Purchase Request']];
   return (
-    <div className="space-y-4"><h1 className="text-xl font-semibold">Sparepart & Inventory</h1><Summary />
+    <div className="space-y-4"><h1 className="text-xl font-semibold">Spare Parts & Inventory</h1><Summary />
       <div className="flex gap-2">{T.map(([k, l]) => <button key={k} className={tab === k ? 'btn' : 'btn-ghost'} onClick={() => setTab(k)}>{l}</button>)}</div>
       {tab === 'stock' ? <Stock /> : tab === 'reorder' ? <Reorder /> : <Prs />}</div>
   );

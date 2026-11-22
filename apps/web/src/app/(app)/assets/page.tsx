@@ -9,7 +9,7 @@ export default function Assets() {
   const { data, error, loading } = useApi<{ total: number; items: any[] }>(`/assets?size=100${q ? `&q=${encodeURIComponent(q)}` : ''}`);
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Aset & Equipment</h1>
+      <div className="flex items-center justify-between"><h1 className="text-xl font-semibold">Assets & Equipment</h1>
         <div className="flex gap-2"><input className="input max-w-xs" placeholder="Cari kode / nama…" value={q} onChange={(e) => setQ(e.target.value)} />
           {["admin", "supervisor", "planner"].includes(getUser()?.role ?? "") && <Link href="/assets/new" className="btn whitespace-nowrap">+ Tambah aset</Link>}
           <Link href="/assets/labels" className="btn-ghost whitespace-nowrap">Label QR</Link></div></div>

@@ -35,7 +35,7 @@ export default function SkillsPage() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="text-xl font-semibold">Matriks Skill Teknisi</h1><p className="text-sm text-slate-600">Level kemampuan tiap teknisi per skill. Level <b>3 (Mandiri)</b> ke atas dihitung sebagai tercakup. Matriks dipakai untuk menandai risiko (skill hanya dikuasai satu orang atau tidak ada di satu shift) dan merekomendasikan teknisi saat menugaskan WO.</p></div>
+      <div><h1 className="text-xl font-semibold">Technician Skill Matrix</h1><p className="text-sm text-slate-600">Level kemampuan tiap teknisi per skill. Level <b>3 (Mandiri)</b> ke atas dihitung sebagai tercakup. Matriks dipakai untuk menandai risiko (skill hanya dikuasai satu orang atau tidak ada di satu shift) dan merekomendasikan teknisi saat menugaskan WO.</p></div>
       {err && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{err}</p>}
       {mx.error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{mx.error}</p>}
       {mx.loading && !d && <Loading />}

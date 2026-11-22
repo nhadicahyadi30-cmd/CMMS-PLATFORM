@@ -83,7 +83,6 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   const side = (
     <aside className="flex h-full w-64 flex-col bg-ink-900 text-slate-300">
-      <div className="stripe-bar" aria-hidden="true" />
       <div className="border-b border-white/5 px-5 py-5"><Link href="/work-orders" aria-label="MaintHub beranda"><Logo size={40} tagline /></Link></div>
       <nav className="nav-scroll flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm" aria-label="Navigasi utama">
         {groups.map((g) => (

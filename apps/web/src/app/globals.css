@@ -66,14 +66,13 @@ html.snap-site { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 .app-root { background-color: #f2efe7; background-image: linear-gradient(rgba(16,27,51,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(16,27,51,.035) 1px, transparent 1px); background-size: 32px 32px; }
 .app-root, .app-root input, .app-root select, .app-root textarea, .app-root button { font-family: 'Barlow', Inter, 'Segoe UI', system-ui, sans-serif; }
 .app-main h1 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 800; font-size: 1.9rem; line-height: 1.05; text-transform: uppercase; letter-spacing: .01em; color: #101b33; }
-.app-main h1::after { content: ''; display: block; width: 52px; height: 7px; margin-top: .5rem; border-radius: 1px; background: repeating-linear-gradient(-45deg, #101b33 0 5px, #ffc93c 5px 10px); }
+.app-main h1::after { content: ''; display: block; width: 40px; height: 4px; margin-top: .55rem; border-radius: 2px; background: #ffc93c; }
 .app-main h2 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 700; letter-spacing: .02em; }
 .app-main table thead { background: #101b33; }
 .app-main table thead th { color: #d9dee9; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .85rem; font-weight: 700; letter-spacing: .08em; padding-top: .6rem; padding-bottom: .6rem; }
 .app-main table tbody tr:nth-child(even) { background: rgba(242,239,231,.55); }
 .app-main table tbody tr:hover { background: #fff4cc; }
 .app-main .card.overflow-x-auto { box-shadow: 0 3px 0 rgba(16,27,51,.12); }
-.stripe-bar { height: 8px; background: repeating-linear-gradient(-45deg, #101b33 0 8px, #ffc93c 8px 16px); }
 
 /* Angka besar kartu KPI/energi: tipografi pabrik, penanda atas tebal */
 .app-main .card .tabular-nums.text-2xl { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 800; font-size: 2.7rem; line-height: 1; letter-spacing: -.01em; color: #101b33; }

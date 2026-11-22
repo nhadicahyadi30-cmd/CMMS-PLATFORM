@@ -50,7 +50,6 @@ export default function Home() {
           ))}
         </div>
         <div className="hidden overflow-hidden rounded-xl border-[1.5px] border-ink-900 bg-ink-900 lg:block" style={{ boxShadow: '0 4px 0 rgba(16,27,51,.25)' }}>
-          <div className="stripe-bar" aria-hidden="true" />
           <FactoryScene className="w-full" />
         </div>
       </div>

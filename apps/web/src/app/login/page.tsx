@@ -21,7 +21,6 @@ export default function Login() {
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.15fr_1fr]" style={{ fontFamily: "'Barlow', Inter, system-ui, sans-serif" }}>
       <section className="relative hidden flex-col overflow-hidden bg-ink-900 text-white lg:flex">
-        <div className="stripe-bar" aria-hidden="true" />
         <div className="flex flex-1 flex-col justify-between p-10 xl:p-14">
           <Link href="/" aria-label="Ke beranda"><Logo size={44} dark /></Link>
           <div>
